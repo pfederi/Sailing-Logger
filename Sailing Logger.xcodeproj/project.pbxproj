@@ -1,0 +1,828 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8AA68EB52CF73BA700D77650 /* ship-bell.wav in Resources */ = {isa = PBXBuildFile; fileRef = 8AA68EB12CF73B8D00D77650 /* ship-bell.wav */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8A4D6DF52CF11FE600CC691E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A4D6DDC2CF11FE500CC691E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A4D6DE32CF11FE500CC691E;
+			remoteInfo = "Sailing Logger";
+		};
+		8A4D6DFF2CF11FE600CC691E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A4D6DDC2CF11FE500CC691E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A4D6DE32CF11FE500CC691E;
+			remoteInfo = "Sailing Logger";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		8A4D6DE42CF11FE500CC691E /* Sailing Logger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sailing Logger.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A4D6DF42CF11FE600CC691E /* Sailing LoggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Sailing LoggerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A4D6DFE2CF11FE600CC691E /* Sailing LoggerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Sailing LoggerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A56381D2CF3D4C800B6B97E /* Sailing Logger.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Sailing Logger.xctestplan"; sourceTree = "<group>"; };
+		8AA68E772CF73B8D00D77650 /* FileManager+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Extension.swift"; sourceTree = "<group>"; };
+		8AA68E792CF73B8D00D77650 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		8AA68E7A2CF73B8D00D77650 /* TileDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileDownloadManager.swift; sourceTree = "<group>"; };
+		8AA68E7C2CF73B8D00D77650 /* CloudCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCover.swift; sourceTree = "<group>"; };
+		8AA68E7D2CF73B8D00D77650 /* CoordinateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinateHelpers.swift; sourceTree = "<group>"; };
+		8AA68E7E2CF73B8D00D77650 /* LogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntry.swift; sourceTree = "<group>"; };
+		8AA68E7F2CF73B8D00D77650 /* Maneuver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maneuver.swift; sourceTree = "<group>"; };
+		8AA68E802CF73B8D00D77650 /* OfflineStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineStatus.swift; sourceTree = "<group>"; };
+		8AA68E812CF73B8D00D77650 /* OpenWeatherResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWeatherResponse.swift; sourceTree = "<group>"; };
+		8AA68E822CF73B8D00D77650 /* Sails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sails.swift; sourceTree = "<group>"; };
+		8AA68E832CF73B8D00D77650 /* TileCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileCalculator.swift; sourceTree = "<group>"; };
+		8AA68E842CF73B8D00D77650 /* TileRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileRegion.swift; sourceTree = "<group>"; };
+		8AA68E852CF73B8D00D77650 /* Visibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Visibility.swift; sourceTree = "<group>"; };
+		8AA68E872CF73B8D00D77650 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		8AA68E8A2CF73B8D00D77650 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		8AA68E8B2CF73B8D00D77650 /* LogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogStore.swift; sourceTree = "<group>"; };
+		8AA68E8C2CF73B8D00D77650 /* MBTilesOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTilesOverlay.swift; sourceTree = "<group>"; };
+		8AA68E8D2CF73B8D00D77650 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		8AA68E8E2CF73B8D00D77650 /* OpenSeaMapTileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSeaMapTileManager.swift; sourceTree = "<group>"; };
+		8AA68E8F2CF73B8D00D77650 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+		8AA68E912CF73B8D00D77650 /* MaritimeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaritimeColors.swift; sourceTree = "<group>"; };
+		8AA68E922CF73B8D00D77650 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		8AA68E942CF73B8D00D77650 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
+		8AA68E962CF73B8D00D77650 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8AA68E972CF73B8D00D77650 /* DailyLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogView.swift; sourceTree = "<group>"; };
+		8AA68E982CF73B8D00D77650 /* EditLogEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditLogEntryView.swift; sourceTree = "<group>"; };
+		8AA68E992CF73B8D00D77650 /* LogEntriesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntriesListView.swift; sourceTree = "<group>"; };
+		8AA68E9A2CF73B8D00D77650 /* LogEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryDetailView.swift; sourceTree = "<group>"; };
+		8AA68E9B2CF73B8D00D77650 /* LogEntryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryRow.swift; sourceTree = "<group>"; };
+		8AA68E9C2CF73B8D00D77650 /* ManeuverSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManeuverSelectionView.swift; sourceTree = "<group>"; };
+		8AA68E9D2CF73B8D00D77650 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		8AA68E9E2CF73B8D00D77650 /* NewLogEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLogEntryView.swift; sourceTree = "<group>"; };
+		8AA68E9F2CF73B8D00D77650 /* RegionNameInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionNameInputView.swift; sourceTree = "<group>"; };
+		8AA68EA02CF73B8D00D77650 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		8AA68EA12CF73B8D00D77650 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		8AA68EA32CF73B8D00D77650 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		8AA68EA42CF73B8D00D77650 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8AA68EA52CF73B8D00D77650 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8AA68EA62CF73B8D00D77650 /* Sailing_LoggerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sailing_LoggerApp.swift; sourceTree = "<group>"; };
+		8AA68EA72CF73B8D00D77650 /* Sailing-Logger-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Sailing-Logger-Bridging-Header.h"; sourceTree = "<group>"; };
+		8AA68EA92CF73B8D00D77650 /* Sailing_LoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sailing_LoggerTests.swift; sourceTree = "<group>"; };
+		8AA68EAB2CF73B8D00D77650 /* Sailing_LoggerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sailing_LoggerUITests.swift; sourceTree = "<group>"; };
+		8AA68EAC2CF73B8D00D77650 /* Sailing_LoggerUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sailing_LoggerUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		8AA68EAE2CF73B8D00D77650 /* Sailing Logger.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Sailing Logger.xcodeproj"; sourceTree = "<group>"; };
+		8AA68EAF2CF73B8D00D77650 /* Sailing Logger.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Sailing Logger.xctestplan"; sourceTree = "<group>"; };
+		8AA68EB02CF73B8D00D77650 /* Sailing-Logger-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Sailing-Logger-Info.plist"; sourceTree = "<group>"; };
+		8AA68EB12CF73B8D00D77650 /* ship-bell.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "ship-bell.wav"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8A4D6E272CF12ED000CC691E /* Exceptions for "Sailing Logger" folder in "Sailing Logger" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8A4D6DE32CF11FE500CC691E /* Sailing Logger */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		8A4D6DE62CF11FE500CC691E /* Sailing Logger */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8A4D6E272CF12ED000CC691E /* Exceptions for "Sailing Logger" folder in "Sailing Logger" target */,
+			);
+			path = "Sailing Logger";
+			sourceTree = "<group>";
+		};
+		8A4D6DF72CF11FE600CC691E /* Sailing LoggerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Sailing LoggerTests";
+			sourceTree = "<group>";
+		};
+		8A4D6E012CF11FE600CC691E /* Sailing LoggerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Sailing LoggerUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8A4D6DE12CF11FE500CC691E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DF12CF11FE600CC691E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DFB2CF11FE600CC691E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8A4D6DDB2CF11FE500CC691E = {
+			isa = PBXGroup;
+			children = (
+				8AA68EB22CF73B8D00D77650 /* Sailing Logger */,
+				8A56381D2CF3D4C800B6B97E /* Sailing Logger.xctestplan */,
+				8A4D6DE62CF11FE500CC691E /* Sailing Logger */,
+				8A4D6DF72CF11FE600CC691E /* Sailing LoggerTests */,
+				8A4D6E012CF11FE600CC691E /* Sailing LoggerUITests */,
+				8A4D6DE52CF11FE500CC691E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8A4D6DE52CF11FE500CC691E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8A4D6DE42CF11FE500CC691E /* Sailing Logger.app */,
+				8A4D6DF42CF11FE600CC691E /* Sailing LoggerTests.xctest */,
+				8A4D6DFE2CF11FE600CC691E /* Sailing LoggerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8AA68E762CF73B8D00D77650 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		8AA68E782CF73B8D00D77650 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E772CF73B8D00D77650 /* FileManager+Extension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		8AA68E7B2CF73B8D00D77650 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E792CF73B8D00D77650 /* LocalizationManager.swift */,
+				8AA68E7A2CF73B8D00D77650 /* TileDownloadManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		8AA68E862CF73B8D00D77650 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E7C2CF73B8D00D77650 /* CloudCover.swift */,
+				8AA68E7D2CF73B8D00D77650 /* CoordinateHelpers.swift */,
+				8AA68E7E2CF73B8D00D77650 /* LogEntry.swift */,
+				8AA68E7F2CF73B8D00D77650 /* Maneuver.swift */,
+				8AA68E802CF73B8D00D77650 /* OfflineStatus.swift */,
+				8AA68E812CF73B8D00D77650 /* OpenWeatherResponse.swift */,
+				8AA68E822CF73B8D00D77650 /* Sails.swift */,
+				8AA68E832CF73B8D00D77650 /* TileCalculator.swift */,
+				8AA68E842CF73B8D00D77650 /* TileRegion.swift */,
+				8AA68E852CF73B8D00D77650 /* Visibility.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		8AA68E882CF73B8D00D77650 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E872CF73B8D00D77650 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		8AA68E892CF73B8D00D77650 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		8AA68E902CF73B8D00D77650 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E8A2CF73B8D00D77650 /* LocationManager.swift */,
+				8AA68E8B2CF73B8D00D77650 /* LogStore.swift */,
+				8AA68E8C2CF73B8D00D77650 /* MBTilesOverlay.swift */,
+				8AA68E8D2CF73B8D00D77650 /* NotificationManager.swift */,
+				8AA68E8E2CF73B8D00D77650 /* OpenSeaMapTileManager.swift */,
+				8AA68E8F2CF73B8D00D77650 /* WeatherService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		8AA68E932CF73B8D00D77650 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E912CF73B8D00D77650 /* MaritimeColors.swift */,
+				8AA68E922CF73B8D00D77650 /* ThemeManager.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		8AA68E952CF73B8D00D77650 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E942CF73B8D00D77650 /* ContentViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		8AA68EA22CF73B8D00D77650 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E962CF73B8D00D77650 /* ContentView.swift */,
+				8AA68E972CF73B8D00D77650 /* DailyLogView.swift */,
+				8AA68E982CF73B8D00D77650 /* EditLogEntryView.swift */,
+				8AA68E992CF73B8D00D77650 /* LogEntriesListView.swift */,
+				8AA68E9A2CF73B8D00D77650 /* LogEntryDetailView.swift */,
+				8AA68E9B2CF73B8D00D77650 /* LogEntryRow.swift */,
+				8AA68E9C2CF73B8D00D77650 /* ManeuverSelectionView.swift */,
+				8AA68E9D2CF73B8D00D77650 /* MapView.swift */,
+				8AA68E9E2CF73B8D00D77650 /* NewLogEntryView.swift */,
+				8AA68E9F2CF73B8D00D77650 /* RegionNameInputView.swift */,
+				8AA68EA02CF73B8D00D77650 /* SettingsView.swift */,
+				8AA68EA12CF73B8D00D77650 /* SplashScreenView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		8AA68EA82CF73B8D00D77650 /* Sailing Logger */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E782CF73B8D00D77650 /* Extensions */,
+				8AA68E7B2CF73B8D00D77650 /* Managers */,
+				8AA68E862CF73B8D00D77650 /* Models */,
+				8AA68E882CF73B8D00D77650 /* Preview Content */,
+				8AA68E892CF73B8D00D77650 /* Resources */,
+				8AA68E902CF73B8D00D77650 /* Services */,
+				8AA68E932CF73B8D00D77650 /* Theme */,
+				8AA68E952CF73B8D00D77650 /* ViewModels */,
+				8AA68EA22CF73B8D00D77650 /* Views */,
+				8AA68EA32CF73B8D00D77650 /* AppDelegate.swift */,
+				8AA68EA42CF73B8D00D77650 /* Assets.xcassets */,
+				8AA68EA52CF73B8D00D77650 /* Info.plist */,
+				8AA68EA62CF73B8D00D77650 /* Sailing_LoggerApp.swift */,
+				8AA68EA72CF73B8D00D77650 /* Sailing-Logger-Bridging-Header.h */,
+			);
+			path = "Sailing Logger";
+			sourceTree = "<group>";
+		};
+		8AA68EAA2CF73B8D00D77650 /* Sailing LoggerTests */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68EA92CF73B8D00D77650 /* Sailing_LoggerTests.swift */,
+			);
+			path = "Sailing LoggerTests";
+			sourceTree = "<group>";
+		};
+		8AA68EAD2CF73B8D00D77650 /* Sailing LoggerUITests */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68EAB2CF73B8D00D77650 /* Sailing_LoggerUITests.swift */,
+				8AA68EAC2CF73B8D00D77650 /* Sailing_LoggerUITestsLaunchTests.swift */,
+			);
+			path = "Sailing LoggerUITests";
+			sourceTree = "<group>";
+		};
+		8AA68EB22CF73B8D00D77650 /* Sailing Logger */ = {
+			isa = PBXGroup;
+			children = (
+				8AA68E762CF73B8D00D77650 /* Resources */,
+				8AA68EA82CF73B8D00D77650 /* Sailing Logger */,
+				8AA68EAA2CF73B8D00D77650 /* Sailing LoggerTests */,
+				8AA68EAD2CF73B8D00D77650 /* Sailing LoggerUITests */,
+				8AA68EAE2CF73B8D00D77650 /* Sailing Logger.xcodeproj */,
+				8AA68EAF2CF73B8D00D77650 /* Sailing Logger.xctestplan */,
+				8AA68EB02CF73B8D00D77650 /* Sailing-Logger-Info.plist */,
+				8AA68EB12CF73B8D00D77650 /* ship-bell.wav */,
+			);
+			name = "Sailing Logger";
+			sourceTree = "<group>";
+		};
+		8AA68EB32CF73B8D00D77650 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8A4D6DE32CF11FE500CC691E /* Sailing Logger */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A4D6E082CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing Logger" */;
+			buildPhases = (
+				8A4D6DE02CF11FE500CC691E /* Sources */,
+				8A4D6DE12CF11FE500CC691E /* Frameworks */,
+				8A4D6DE22CF11FE500CC691E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8A4D6DE62CF11FE500CC691E /* Sailing Logger */,
+			);
+			name = "Sailing Logger";
+			packageProductDependencies = (
+			);
+			productName = "Sailing Logger";
+			productReference = 8A4D6DE42CF11FE500CC691E /* Sailing Logger.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8A4D6DF32CF11FE600CC691E /* Sailing LoggerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A4D6E0B2CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing LoggerTests" */;
+			buildPhases = (
+				8A4D6DF02CF11FE600CC691E /* Sources */,
+				8A4D6DF12CF11FE600CC691E /* Frameworks */,
+				8A4D6DF22CF11FE600CC691E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A4D6DF62CF11FE600CC691E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8A4D6DF72CF11FE600CC691E /* Sailing LoggerTests */,
+			);
+			name = "Sailing LoggerTests";
+			packageProductDependencies = (
+			);
+			productName = "Sailing LoggerTests";
+			productReference = 8A4D6DF42CF11FE600CC691E /* Sailing LoggerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8A4D6DFD2CF11FE600CC691E /* Sailing LoggerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A4D6E0E2CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing LoggerUITests" */;
+			buildPhases = (
+				8A4D6DFA2CF11FE600CC691E /* Sources */,
+				8A4D6DFB2CF11FE600CC691E /* Frameworks */,
+				8A4D6DFC2CF11FE600CC691E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A4D6E002CF11FE600CC691E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8A4D6E012CF11FE600CC691E /* Sailing LoggerUITests */,
+			);
+			name = "Sailing LoggerUITests";
+			packageProductDependencies = (
+			);
+			productName = "Sailing LoggerUITests";
+			productReference = 8A4D6DFE2CF11FE600CC691E /* Sailing LoggerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8A4D6DDC2CF11FE500CC691E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					8A4D6DE32CF11FE500CC691E = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					8A4D6DF32CF11FE600CC691E = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 8A4D6DE32CF11FE500CC691E;
+					};
+					8A4D6DFD2CF11FE600CC691E = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 8A4D6DE32CF11FE500CC691E;
+					};
+				};
+			};
+			buildConfigurationList = 8A4D6DDF2CF11FE500CC691E /* Build configuration list for PBXProject "Sailing Logger" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8A4D6DDB2CF11FE500CC691E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8A533DAD2CF2949D006960E7 /* XCRemoteSwiftPackageReference "GCDWebServer" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8A4D6DE52CF11FE500CC691E /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 8AA68EB32CF73B8D00D77650 /* Products */;
+					ProjectRef = 8AA68EAE2CF73B8D00D77650 /* Sailing Logger.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				8A4D6DE32CF11FE500CC691E /* Sailing Logger */,
+				8A4D6DF32CF11FE600CC691E /* Sailing LoggerTests */,
+				8A4D6DFD2CF11FE600CC691E /* Sailing LoggerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8A4D6DE22CF11FE500CC691E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8AA68EB52CF73BA700D77650 /* ship-bell.wav in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DF22CF11FE600CC691E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DFC2CF11FE600CC691E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8A4D6DE02CF11FE500CC691E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DF02CF11FE600CC691E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A4D6DFA2CF11FE600CC691E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8A4D6DF62CF11FE600CC691E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A4D6DE32CF11FE500CC691E /* Sailing Logger */;
+			targetProxy = 8A4D6DF52CF11FE600CC691E /* PBXContainerItemProxy */;
+		};
+		8A4D6E002CF11FE600CC691E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A4D6DE32CF11FE500CC691E /* Sailing Logger */;
+			targetProxy = 8A4D6DFF2CF11FE600CC691E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		8A4D6E062CF11FE600CC691E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		8A4D6E072CF11FE600CC691E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8A4D6E092CF11FE600CC691E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Sailing Logger/Preview Content\"";
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Sailing Logger/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Required to serve map tiles locally";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to log your sailing journey and provide accurate weather data.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-Logger";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8A4D6E0A2CF11FE600CC691E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Sailing Logger/Preview Content\"";
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Sailing Logger/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Required to serve map tiles locally";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to log your sailing journey and provide accurate weather data.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-Logger";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8A4D6E0C2CF11FE600CC691E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-LoggerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sailing Logger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sailing Logger";
+			};
+			name = Debug;
+		};
+		8A4D6E0D2CF11FE600CC691E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-LoggerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sailing Logger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sailing Logger";
+			};
+			name = Release;
+		};
+		8A4D6E0F2CF11FE600CC691E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-LoggerUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Sailing Logger";
+			};
+			name = Debug;
+		};
+		8A4D6E102CF11FE600CC691E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CD7648W7NV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.federi.Sailing-LoggerUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Sailing Logger";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8A4D6DDF2CF11FE500CC691E /* Build configuration list for PBXProject "Sailing Logger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A4D6E062CF11FE600CC691E /* Debug */,
+				8A4D6E072CF11FE600CC691E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A4D6E082CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing Logger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A4D6E092CF11FE600CC691E /* Debug */,
+				8A4D6E0A2CF11FE600CC691E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A4D6E0B2CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing LoggerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A4D6E0C2CF11FE600CC691E /* Debug */,
+				8A4D6E0D2CF11FE600CC691E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A4D6E0E2CF11FE600CC691E /* Build configuration list for PBXNativeTarget "Sailing LoggerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A4D6E0F2CF11FE600CC691E /* Debug */,
+				8A4D6E102CF11FE600CC691E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8A533DAD2CF2949D006960E7 /* XCRemoteSwiftPackageReference "GCDWebServer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swisspol/GCDWebServer.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.5.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+	};
+	rootObject = 8A4D6DDC2CF11FE500CC691E /* Project object */;
+}

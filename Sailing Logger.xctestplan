@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "D71EE59D-FF0A-4FF0-A872-6AFF1003FD09",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Sailing Logger.xcodeproj",
+      "identifier" : "8A4D6DE32CF11FE500CC691E",
+      "name" : "Sailing Logger"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Sailing Logger.xcodeproj",
+        "identifier" : "8A4D6DF32CF11FE600CC691E",
+        "name" : "Sailing LoggerTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Sailing Logger.xcodeproj",
+        "identifier" : "8A4D6DFD2CF11FE600CC691E",
+        "name" : "Sailing LoggerUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
