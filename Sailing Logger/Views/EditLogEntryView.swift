@@ -493,14 +493,26 @@ struct EditLogEntryView: View {
                         .focused($focusedField, equals: .latitudeDegrees)
                         .id(Field.latitudeDegrees)
                     Text("°")
-                    TextField("", value: $latitudeMinutes, formatter: minutesFormatter)
+                    TextField("", value: Binding(
+                        get: { latitudeMinutes },
+                        set: { newValue in
+                            latitudeMinutes = newValue
+                            updateCoordinates()
+                        }
+                    ), formatter: minutesFormatter)
                         .keyboardType(.numbersAndPunctuation)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 70)  // Etwas breiter für die Dezimalstellen
                         .focused($focusedField, equals: .latitudeMinutes)
                         .id(Field.latitudeMinutes)
                     Text("'")
-                    Picker("", selection: $latitudeDirection) {
+                    Picker("", selection: Binding(
+                        get: { latitudeDirection },
+                        set: { newValue in
+                            latitudeDirection = newValue
+                            updateCoordinates()
+                        }
+                    )) {
                         Text("N").tag(true)
                         Text("S").tag(false)
                     }
@@ -526,14 +538,26 @@ struct EditLogEntryView: View {
                         .focused($focusedField, equals: .longitudeDegrees)
                         .id(Field.longitudeDegrees)
                     Text("°")
-                    TextField("", value: $longitudeMinutes, formatter: minutesFormatter)
+                    TextField("", value: Binding(
+                        get: { longitudeMinutes },
+                        set: { newValue in
+                            longitudeMinutes = newValue
+                            updateCoordinates()
+                        }
+                    ), formatter: minutesFormatter)
                         .keyboardType(.numbersAndPunctuation)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 70)  // Etwas breiter für die Dezimalstellen
                         .focused($focusedField, equals: .longitudeMinutes)
                         .id(Field.longitudeMinutes)
                     Text("'")
-                    Picker("", selection: $longitudeDirection) {
+                    Picker("", selection: Binding(
+                        get: { longitudeDirection },
+                        set: { newValue in
+                            longitudeDirection = newValue
+                            updateCoordinates()
+                        }
+                    )) {
                         Text("E").tag(true)
                         Text("W").tag(false)
                     }

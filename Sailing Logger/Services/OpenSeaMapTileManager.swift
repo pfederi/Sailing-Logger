@@ -3,6 +3,7 @@ import SQLite3
 import UIKit
 import MapKit
 import UserNotifications
+import Network
 
 @MainActor
 class OpenSeaMapTileManager: NSObject, ObservableObject {
@@ -36,6 +37,7 @@ class OpenSeaMapTileManager: NSObject, ObservableObject {
     private var backgroundSession: URLSession!
     private var backgroundCompletionHandler: (() -> Void)?
     @Published var showDownloadStartedAlert = false
+    @Published var showOfflineAlert = false
     
     override init() {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -330,6 +332,24 @@ class OpenSeaMapTileManager: NSObject, ObservableObject {
     }
     
     func downloadTiles(for region: String) async throws {
+        // Prüfe zuerst Online-Status
+        let monitor = NWPathMonitor()
+        
+        let isOnline = await withCheckedContinuation { continuation in
+            monitor.pathUpdateHandler = { path in
+                continuation.resume(returning: path.status == .satisfied)
+            }
+            monitor.start(queue: DispatchQueue.global())
+        }
+        
+        // Stoppe den Monitor
+        monitor.cancel()
+        
+        if !isOnline {
+            showOfflineAlert = true
+            return
+        }
+        
         guard !isDownloading else { return }
         
         self.isPreparing = true
@@ -343,6 +363,8 @@ class OpenSeaMapTileManager: NSObject, ObservableObject {
         let regionName = getRegionNameForURL(region)
         let downloadURL = URL(string: "\(baseURL)\(regionName).mbtiles")!
         
+        print("🌍 Downloading map from: \(downloadURL.absoluteString)")
+        
         // Konfiguriere Session
         let config = URLSessionConfiguration.default
         config.allowsConstrainedNetworkAccess = true
@@ -354,7 +376,6 @@ class OpenSeaMapTileManager: NSObject, ObservableObject {
         let downloadTask = session.downloadTask(with: downloadURL)
         self.downloadTask = downloadTask
         
-        // Setze isPreparing auf false und isDownloading auf true
         self.isPreparing = false
         self.isDownloading = true
         
@@ -394,12 +415,13 @@ class OpenSeaMapTileManager: NSObject, ObservableObject {
 
 extension OpenSeaMapTileManager: URLSessionDownloadDelegate {
     nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        guard let originalRegionName = downloadTask.originalRequest?.url?.lastPathComponent
-            .replacingOccurrences(of: "OSM-OpenCPN2-", with: "")
-            .replacingOccurrences(of: ".mbtiles", with: "") else { return }
+        guard let originalURL = downloadTask.originalRequest?.url?.lastPathComponent else { return }
         
-        // Konvertiere den Regionsnamen zurück in das interne Format
-        let regionName = originalRegionName.lowercased()
+        // Extrahiere nur den Regionsnamen aus der URL
+        let regionName = originalURL
+            .replacingOccurrences(of: "OSM-OpenCPN2-", with: "")
+            .replacingOccurrences(of: ".mbtiles", with: "")
+            .lowercased()
             .replacingOccurrences(of: "magellanstrait", with: "magellan")
             .replacingOccurrences(of: "medieast", with: "medieast")
             .replacingOccurrences(of: "mediwest", with: "mediwest")

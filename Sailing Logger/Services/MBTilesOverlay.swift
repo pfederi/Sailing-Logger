@@ -3,10 +3,13 @@ import SQLite3
 
 class MBTilesOverlay: MKTileOverlay {
     private var db: OpaquePointer?
+    let fileURL: URL
 
     init(fileURL: URL) {
+        self.fileURL = fileURL
         super.init(urlTemplate: nil)
         print("\n🚀 Initializing MBTilesOverlay")
+        
         if sqlite3_open(fileURL.path, &db) != SQLITE_OK {
             print("❌ Failed to open database at: \(fileURL.path)")
             print("💡 Error: \(String(cString: sqlite3_errmsg(db)))")

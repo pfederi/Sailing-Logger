@@ -77,6 +77,11 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(themeManager.colorScheme)
+        .alert("Offline", isPresented: $tileManager.showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You need to be online to download map tiles. Please check your internet connection and try again.")
+        }
     }
 }
 
