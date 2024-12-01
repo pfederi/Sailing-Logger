@@ -60,7 +60,7 @@ struct MapView: UIViewRepresentable {
         annotation.coordinate = currentLocation.toCLLocationCoordinate2D()
         mapView.addAnnotation(annotation)
         
-        let span = 360.0 / pow(2.0, Double(14))
+        let span = 360.0 / pow(2.0, Double(12))
         let region = MKCoordinateRegion(
             center: currentLocation.toCLLocationCoordinate2D(),
             span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
@@ -162,8 +162,8 @@ struct MapView: UIViewRepresentable {
             let region = MKCoordinateRegion(
                 center: annotation.coordinate,
                 span: MKCoordinateSpan(
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01
+                    latitudeDelta: 360.0 / pow(2.0, Double(12)),
+                    longitudeDelta: 360.0 / pow(2.0, Double(12))
                 )
             )
             mapView.setRegion(region, animated: true)
@@ -177,7 +177,7 @@ struct MapView: UIViewRepresentable {
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
         let availableZoomLevels = [8, 10, 12, 14, 16]  // Nur die MBTiles Zoom-Stufen
-        var currentZoomIndex = 3  // Start bei Zoom-Level 14 (Index 3)
+        var currentZoomIndex = 2  // Start bei Zoom-Level 12 (Index 2)
 
         init(_ parent: MapView) {
             self.parent = parent
