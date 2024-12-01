@@ -9,14 +9,23 @@ struct LogEntriesListView: View {
     
     private var groupedEntries: [(String, [LogEntry])] {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .none
+        dateFormatter.dateFormat = "yyyy-MM-dd"
         
         let grouped = Dictionary(grouping: logStore.entries) { entry in
             dateFormatter.string(from: entry.timestamp)
         }
         
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .long
+        displayFormatter.timeStyle = .none
+        
         return grouped.sorted { $0.key > $1.key }
+            .map { (key, entries) in
+                if let date = dateFormatter.date(from: key) {
+                    return (displayFormatter.string(from: date), entries)
+                }
+                return (key, entries)
+            }
     }
     
     var body: some View {

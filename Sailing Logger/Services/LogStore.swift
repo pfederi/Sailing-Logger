@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import CoreLocation
 
 @MainActor
 class LogStore: ObservableObject {
@@ -77,6 +78,31 @@ class LogStore: ObservableObject {
             added: addedCount,
             duplicates: duplicateCount
         )
+    }
+    
+    func updateLocationDescriptions() async {
+        for index in entries.indices {
+            if entries[index].locationDescription == nil {
+                do {
+                    let description = try await GeocodingService.shared.reverseGeocode(
+                        coordinates: CLLocationCoordinate2D(
+                            latitude: entries[index].coordinates.latitude,
+                            longitude: entries[index].coordinates.longitude
+                        )
+                    )
+                    entries[index].locationDescription = description
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                } catch {
+                    print("Fehler beim Geocoding für Eintrag \(entries[index].id): \(error)")
+                }
+            }
+        }
+        save()
+    }
+    
+    func saveLocationDescription(for entry: LogEntry, description: String) {
+        entry.locationDescription = description
+        save()
     }
 }
 

@@ -82,6 +82,9 @@ struct ContentView: View {
         } message: {
             Text("You need to be online to download map tiles. Please check your internet connection and try again.")
         }
+        .task {
+            await logStore.updateLocationDescriptions()
+        }
     }
 }
 

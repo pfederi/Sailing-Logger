@@ -1,7 +1,8 @@
 import SwiftUI
+import CoreLocation
 
 struct LogEntryRow: View {
-    let entry: LogEntry
+    @ObservedObject var entry: LogEntry
     
     var body: some View {
         HStack(alignment: .center, spacing: 20) {
@@ -22,6 +23,12 @@ struct LogEntryRow: View {
                 Text(entry.timestamp.formatted(date: .omitted, time: .shortened))
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
+                if let location = entry.locationDescription {
+                    Text(location)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 if let maneuver = entry.maneuver {
                     Text(maneuver.rawValue)
@@ -140,6 +147,12 @@ struct LogEntryRow: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
+            }
+        }
+        .onAppear {
+            // Starten Sie das Geocoding sofort beim Erscheinen der View
+            Task {
+                await entry.fetchLocationDescription()
             }
         }
     }

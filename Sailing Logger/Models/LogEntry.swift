@@ -3,7 +3,7 @@ import SwiftUI
 import MapKit
 import UniformTypeIdentifiers
 
-struct LogEntry: Identifiable, Codable, Hashable, Transferable {
+class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable {
     let id: UUID
     let timestamp: Date
     let coordinates: Coordinates
@@ -21,14 +21,16 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
     let maneuver: Maneuver?
     let notes: String?
     let sails: Sails
+    @Published var locationDescription: String?
     
     enum CodingKeys: String, CodingKey {
         case id, timestamp, coordinates, distance, magneticCourse, courseOverGround
         case barometer, temperature, visibility, cloudCover, wind, sailState, speed
         case engineState, maneuver, notes, sails
+        case locationDescription
     }
     
-    init(
+    required init(
         id: UUID = UUID(),
         timestamp: Date = Date(),
         coordinates: Coordinates,
@@ -45,7 +47,8 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
         engineState: EngineState = .off,
         maneuver: Maneuver? = nil,
         notes: String? = nil,
-        sails: Sails = Sails()
+        sails: Sails = Sails(),
+        locationDescription: String? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -64,9 +67,10 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
         self.maneuver = maneuver
         self.notes = notes
         self.sails = sails
+        self.locationDescription = locationDescription
     }
     
-    init(from decoder: Decoder) throws {
+    required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // UUID kann als String kommen
@@ -115,6 +119,7 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
         maneuver = try container.decodeIfPresent(Maneuver.self, forKey: .maneuver)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
         sails = try container.decodeIfPresent(Sails.self, forKey: .sails) ?? Sails()
+        locationDescription = try container.decodeIfPresent(String.self, forKey: .locationDescription)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -136,6 +141,7 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
         try container.encodeIfPresent(maneuver, forKey: .maneuver)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encode(sails, forKey: .sails)
+        try container.encodeIfPresent(locationDescription, forKey: .locationDescription)
     }
     
     static var transferRepresentation: some TransferRepresentation {
@@ -180,6 +186,56 @@ struct LogEntry: Identifiable, Codable, Hashable, Transferable {
         hasher.combine(maneuver)
         hasher.combine(notes)
         hasher.combine(sails)
+    }
+    
+    func fetchLocationDescription() async {
+        print("Fetching location for coordinates: \(coordinates.latitude), \(coordinates.longitude)")
+        
+        if let description = locationDescription,
+           !description.contains("°N") && !description.contains("°S") && 
+           !description.contains("°E") && !description.contains("°W") {
+            print("Using cached location: \(description)")
+            return
+        }
+        
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: coordinates.latitude, longitude: coordinates.longitude)
+        
+        // Setze die Locale auf Englisch
+        let locale = Locale(identifier: "en_US")
+        
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location, preferredLocale: locale)
+            if let placemark = placemarks.first {
+                if let ocean = placemark.ocean {
+                    await MainActor.run {
+                        self.locationDescription = ocean
+                    }
+                    return
+                }
+                if let sea = placemark.inlandWater {
+                    await MainActor.run {
+                        self.locationDescription = sea
+                    }
+                    return
+                }
+                
+                let description = [
+                    placemark.locality,
+                    placemark.administrativeArea,
+                    placemark.country
+                ].compactMap { $0 }.joined(separator: ", ")
+                
+                print("Found location: \(description)")
+                
+                await MainActor.run {
+                    self.locationDescription = description
+                    print("Location set to: \(self.locationDescription ?? "")")
+                }
+            }
+        } catch {
+            print("Reverse geocoding failed: \(error.localizedDescription)")
+        }
     }
 }
 
