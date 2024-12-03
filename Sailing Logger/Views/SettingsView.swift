@@ -331,16 +331,15 @@ private struct DataManagementSection: View {
 }
 
 private struct AboutSection: View {
-    private var appVersionWithBuild: String {
+    private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-        return "Version \(version) (\(build))"
+        return "Version \(version)"
     }
     
     var body: some View {
         Section {
             VStack(spacing: 8) {
-                Text(appVersionWithBuild)
+                Text(appVersion)
                     .font(.footnote)
                     .foregroundColor(.gray)
                 
