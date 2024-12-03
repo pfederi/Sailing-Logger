@@ -121,10 +121,16 @@ struct DailyLogView: View {
         // Erstellen Sie einen Snapshot der Karte
         let options = MKMapSnapshotter.Options()
         options.region = MKCoordinateRegion(paddedRect)
-        options.size = CGSize(width: tableWidth, height: 400) // Breite an Tabelle angepasst
+        options.size = CGSize(width: tableWidth, height: 400)
         options.scale = UIScreen.main.scale
         
+        // Konfiguriere die Map-Darstellung
+        let config = MKStandardMapConfiguration()
+        config.pointOfInterestFilter = .excludingAll
+        options.preferredConfiguration = config
+        
         let snapshotter = MKMapSnapshotter(options: options)
+        
         snapshotter.start { snapshot, error in
             guard let snapshot = snapshot else {
                 self.isGeneratingScreenshot = false
@@ -138,9 +144,9 @@ struct DailyLogView: View {
             if let context = UIGraphicsGetCurrentContext() {
                 let points = coordinates.map { snapshot.point(for: $0) }
                 
-                // Zeichne jeden Punkt der Route
+                // Zeichne jeden Punkt der Route mit Zeitstempel
                 for (index, point) in points.enumerated() {
-                    // Wähle Farbe basierend auf Position (Start=grün, Ende=rot, dazwischen=blau)
+                    // Wähle Farbe basierend auf Position
                     if index == 0 {
                         context.setFillColor(UIColor.green.cgColor)
                     } else if index == points.count - 1 {
@@ -151,13 +157,37 @@ struct DailyLogView: View {
                     
                     // Zeichne den Punkt
                     context.fillEllipse(in: CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8))
+                    
+                    // Füge Zeitstempel hinzu
+                    let time = entries[index].timestamp.formatted(date: .omitted, time: .shortened)
+                    let attributes: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 10),
+                        .foregroundColor: UIColor.black
+                    ]
+                    
+                    // Erstelle weißen Hintergrund für bessere Lesbarkeit
+                    let timeSize = (time as NSString).size(withAttributes: attributes)
+                    let backgroundRect = CGRect(
+                        x: point.x + 8,
+                        y: point.y - timeSize.height/2,
+                        width: timeSize.width + 4,
+                        height: timeSize.height
+                    )
+                    context.setFillColor(UIColor.white.withAlphaComponent(0.8).cgColor)
+                    context.fill(backgroundRect)
+                    
+                    // Zeichne den Text
+                    (time as NSString).draw(
+                        at: CGPoint(x: point.x + 10, y: point.y - timeSize.height/2),
+                        withAttributes: attributes
+                    )
                 }
             }
             
             let finalMapImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
-            // Screenshot erstellen
+            // Erstelle den finalen Screenshot
             let content = VStack(spacing: 0) {
                 // Titel mit App-Icon und Name
                 HStack {
