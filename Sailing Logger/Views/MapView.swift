@@ -72,15 +72,18 @@ struct MapView: UIViewRepresentable {
         // Zuerst Apple MapKit als Basiskarte
         mapView.mapType = .mutedStandard
         
-        // Dann prüfen ob online oder offline Karten verfügbar sind
         let monitor = NWPathMonitor()
         monitor.pathUpdateHandler = { path in
             DispatchQueue.main.async {
                 if path.status == .satisfied {
                     print("🌐 Device is online - Loading online tiles...")
+                    // Stelle sicher, dass Apple Maps sichtbar ist
+                    mapView.mapType = .mutedStandard
                     self.loadOnlineOpenSeaMapTiles(mapView)
                 } else {
                     print("📴 Device is offline - Loading offline tiles...")
+                    // Stelle sicher, dass Apple Maps sichtbar ist
+                    mapView.mapType = .mutedStandard
                     if !self.loadOfflineMBTiles(mapView) {
                         print("⚠️ No offline tiles available - Using Apple Maps as fallback")
                     }
@@ -113,8 +116,6 @@ struct MapView: UIViewRepresentable {
     private func loadOfflineMBTiles(_ mapView: MKMapView) -> Bool {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let tilesPath = documentsPath.appendingPathComponent("OpenSeaMapTiles")
-        
-        let tileTypes = ["base", "channel", "topography"]
         var overlaysAdded = false
         
         // Prüfe ob Tiles für die aktuelle Region verfügbar sind
@@ -124,12 +125,14 @@ struct MapView: UIViewRepresentable {
         )
         
         if tileManager.getRegionForCoordinate(coordinate) != nil {
-            for tileType in tileTypes {
-                let tileURL = tilesPath.appendingPathComponent("\(tileType).mbtiles")
-                if FileManager.default.fileExists(atPath: tileURL.path) {
-                    print("✅ Found offline tiles: \(tileType)")
-                    let overlay = MBTilesOverlay(fileURL: tileURL)
-                    overlay.canReplaceMapContent = tileType == "base"
+            // Alle .mbtiles Dateien im Verzeichnis finden
+            if let files = try? FileManager.default.contentsOfDirectory(at: tilesPath, 
+                                                                      includingPropertiesForKeys: nil) {
+                for file in files where file.pathExtension == "mbtiles" {
+                    print("✅ Found offline tiles: \(file.lastPathComponent)")
+                    let overlay = MBTilesOverlay(fileURL: file)
+                    // Nur base layer sollte die Basiskarte ersetzen
+                    overlay.canReplaceMapContent = file.lastPathComponent.contains("base")
                     mapView.addOverlay(overlay, level: .aboveLabels)
                     overlaysAdded = true
                 }
@@ -191,20 +194,17 @@ struct MapView: UIViewRepresentable {
                     // Offline MBTiles
                     let filename = mbtiles.fileURL.lastPathComponent
                     if filename.contains("base") {
-                        renderer.alpha = 1.0
-                    } else if filename.contains("channel") {
-                        renderer.alpha = 0.8
-                    } else if filename.contains("topography") {
-                        renderer.alpha = 0.6
+                        renderer.alpha = 0.6  // Reduzierte Deckkraft für base layer
+                    } else {
+                        renderer.alpha = 0.8  // Andere Layer etwas transparenter
                     }
                 } else {
                     // Online Tiles
                     if let template = tileOverlay.urlTemplate {
-                        print("🎨 Rendering online tiles from: \(template)")
                         if template.contains("openstreetmap") {
-                            renderer.alpha = 0.6  // Basis-Layer etwas transparenter
+                            renderer.alpha = 0.6
                         } else if template.contains("openseamap") {
-                            renderer.alpha = 1.0  // Nautische Daten voll sichtbar
+                            renderer.alpha = 0.8
                         }
                     }
                 }

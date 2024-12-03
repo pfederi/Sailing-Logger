@@ -21,7 +21,13 @@ struct NewLogEntryView: View {
     @State private var visibility: Visibility? = nil
     @State private var cloudCover: Int? = nil
     @State private var windDirection: Compass? = nil
-    @State private var windSpeed: Double? = nil
+    @State private var windSpeed: Double? = nil {
+        didSet {
+            if let speed = windSpeed {
+                windSpeedBft = windSpeedToBeaufort(speed)
+            }
+        }
+    }
     @State private var windSpeedBft: Int = 0
     @State private var sailState: SailState = .none
     @State private var speed: Double? = nil
@@ -168,8 +174,9 @@ struct NewLogEntryView: View {
                     self.visibility = Visibility.from(nauticalMiles: min(10, Int(Double(weather.visibility) / 1852.0)))
                     self.cloudCover = CloudCover.from(oktas: Int((Double(weather.clouds.all) / 100.0) * 8.0)).value
                     self.windDirection = Compass.from(degrees: weather.wind.deg)
+                    // Setze zuerst windSpeedBft auf 0, damit der didSet von windSpeed korrekt funktioniert
+                    self.windSpeedBft = 0
                     self.windSpeed = weather.wind.speed * 1.94384  // Convert m/s to knots
-                    self.windSpeedBft = Int(weather.wind.speed.toBeaufort())
                     self.weatherDataLoaded = true
                     self.temperature = weather.main.temp
                 }
