@@ -22,22 +22,20 @@ struct LogEntryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.timestamp.formatted(date: .omitted, time: .shortened))
                     .font(.caption)
-                    .foregroundColor(.secondary)
                 
                 if let location = entry.locationDescription {
                     Text(location)
                         .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                if let maneuver = entry.maneuver {
-                    Text(maneuver.rawValue)
-                        .font(.body)
                 }
                 
                 Text(entry.coordinates.formattedNautical())
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
+                if let maneuver = entry.maneuver {
+                    Text(maneuver.rawValue)
+                        .font(.body)
+                }
                 
                 // Navigation Info
                 if entry.distance > 0 || entry.magneticCourse > 0 || entry.courseOverGround > 0 || entry.speed > 0 {
@@ -144,7 +142,6 @@ struct LogEntryRow: View {
                 if let notes = entry.notes, !notes.isEmpty {
                     Text(notes)
                         .font(.caption)
-                        .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
             }
