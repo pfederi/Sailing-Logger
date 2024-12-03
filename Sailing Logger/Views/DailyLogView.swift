@@ -460,12 +460,6 @@ struct RouteMapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
-        // Deaktiviere Clustering
-        mapView.register(
-            MKMarkerAnnotationView.self,
-            forAnnotationViewWithReuseIdentifier: MKMapViewDefaultAnnotationViewReuseIdentifier
-        )
-        
         // Deaktiviere alle Interaktionen mit der Karte
         mapView.isZoomEnabled = false
         mapView.isScrollEnabled = true
@@ -477,23 +471,49 @@ struct RouteMapView: UIViewRepresentable {
         offlineOverlay.canReplaceMapContent = false
         mapView.addOverlay(offlineOverlay, level: .aboveLabels)
         
-        // Add route points if coordinates exist
+        // Add route points and set appropriate zoom
         if !routeCoordinates.isEmpty {
+            // Füge Marker hinzu
             for entry in entries {
                 let annotation = RoutePointAnnotation(entry: entry)
                 mapView.addAnnotation(annotation)
             }
-        }
-        
-        // Deaktiviere Clustering explizit
-        let config = MKStandardMapConfiguration()
-        config.pointOfInterestFilter = .excludingAll
-        mapView.preferredConfiguration = config
-        
-        // Set center if provided
-        if let center = centerCoordinate?.toCLLocationCoordinate2D() {
-            let span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-            let region = MKCoordinateRegion(center: center, span: span)
+            
+            // Berechne die Grenzen aller Koordinaten
+            let coordinates = routeCoordinates.map { $0.toCLLocationCoordinate2D() }
+            let rect = coordinates.reduce(MKMapRect.null) { rect, coordinate in
+                let point = MKMapPoint(coordinate)
+                let pointRect = MKMapRect(x: point.x, y: point.y, width: 0, height: 0)
+                return rect.union(pointRect)
+            }
+            
+            // Füge Padding hinzu (10%)
+            let paddedRect = rect.insetBy(dx: -rect.size.width * 0.1, dy: -rect.size.height * 0.1)
+            
+            // Berechne die benötigte Zoomstufe basierend auf der Distanz
+            let maxSpan = max(
+                MKCoordinateRegion(paddedRect).span.latitudeDelta,
+                MKCoordinateRegion(paddedRect).span.longitudeDelta
+            )
+            
+            // Berechne die optimale Zoomstufe (zwischen 8 und 16)
+            let zoomLevel = min(max(
+                -log2(maxSpan / 360.0),
+                8.0  // Minimum zoom
+            ), 16.0) // Maximum zoom
+            
+            // Setze die initiale Zoomstufe im Coordinator
+            context.coordinator.currentZoomIndex = context.coordinator.availableZoomLevels.firstIndex(where: { abs(Double($0) - zoomLevel) < 1 }) ?? 3
+            
+            // Setze die Region mit der berechneten Zoomstufe
+            let span = 360.0 / pow(2.0, zoomLevel)
+            let region = MKCoordinateRegion(
+                center: MKCoordinateRegion(paddedRect).center,
+                span: MKCoordinateSpan(
+                    latitudeDelta: span,
+                    longitudeDelta: span
+                )
+            )
             mapView.setRegion(region, animated: false)
         }
         
@@ -614,7 +634,7 @@ struct RouteMapView: UIViewRepresentable {
                 center: mapView.region.center,
                 span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
             )
-            mapView.setRegion(region, animated: true)
+            mapView.setRegion(region, animated: false)
         }
         
         @objc func zoomOut(_ sender: UIButton) {
@@ -628,7 +648,7 @@ struct RouteMapView: UIViewRepresentable {
                 center: mapView.region.center,
                 span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
             )
-            mapView.setRegion(region, animated: true)
+            mapView.setRegion(region, animated: false)
         }
         
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
