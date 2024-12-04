@@ -51,12 +51,16 @@ struct VoyageArchiveView: View {
     }
 }
 
-struct VoyageArchiveRow: View {
+private struct VoyageArchiveRow: View {
     let voyage: Voyage
     @ObservedObject var voyageStore: VoyageStore
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var logStore: LogStore
+    
+    private var lastEntry: LogEntry? {
+        voyage.logEntries.sorted { $0.timestamp > $1.timestamp }.first
+    }
     
     var body: some View {
         NavigationLink {
@@ -68,86 +72,40 @@ struct VoyageArchiveRow: View {
                 logStore: logStore
             )
         } label: {
-            RowContent(voyage: voyage)
-        }
-    }
-}
-
-private struct RowContent: View {
-    let voyage: Voyage
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            VoyageHeader(name: voyage.name)
-            VoyageDateRange(dateRangeText: dateRangeText)
-            if !voyage.crew.isEmpty {
-                VoyageCrewInfo(crewText: crewText)
+            VStack(alignment: .leading, spacing: 8) {
+                // Title
+                Text(voyage.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                // Date Range
+                HStack {
+                    Text(voyage.startDate.formatted(date: .abbreviated, time: .omitted))
+                    Text("→")
+                    Text(lastEntry?.timestamp.formatted(date: .abbreviated, time: .omitted) ?? "ongoing")
+                }
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                
+                // Additional Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(voyage.boatName) (\(voyage.boatType))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if !voyage.crew.isEmpty {
+                        Text("Crew: \(voyage.crew.map { $0.name }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text("\(voyage.logEntries.count) Log Entries")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
-            VoyageBoatInfo(boatText: boatText)
-            VoyageEntryCount(entryCount: voyage.logEntries.count)
+            .padding(.vertical, 8)
         }
-        .padding(.vertical, 4)
-    }
-    
-    private var dateRangeText: String {
-        "\(voyage.startDate.formatted(date: .long, time: .omitted)) - \(voyage.endDate?.formatted(date: .long, time: .omitted) ?? "ongoing")"
-    }
-    
-    private var crewText: String {
-        "Crew: \(voyage.crew.map { $0.name }.joined(separator: ", "))"
-    }
-    
-    private var boatText: String {
-        "\(voyage.boatName) (\(voyage.boatType))"
-    }
-}
-
-private struct VoyageHeader: View {
-    let name: String
-    
-    var body: some View {
-        Text(name)
-            .font(.headline)
-    }
-}
-
-private struct VoyageDateRange: View {
-    let dateRangeText: String
-    
-    var body: some View {
-        Text(dateRangeText)
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-    }
-}
-
-private struct VoyageCrewInfo: View {
-    let crewText: String
-    
-    var body: some View {
-        Text(crewText)
-            .font(.caption)
-            .foregroundColor(.secondary)
-    }
-}
-
-private struct VoyageBoatInfo: View {
-    let boatText: String
-    
-    var body: some View {
-        Text(boatText)
-            .font(.caption)
-            .foregroundColor(.secondary)
-    }
-}
-
-private struct VoyageEntryCount: View {
-    let entryCount: Int
-    
-    var body: some View {
-        Text("\(entryCount) Log Entries")
-            .font(.caption)
-            .foregroundColor(.secondary)
     }
 }
 
@@ -159,6 +117,7 @@ struct VoyageDetailView: View {
     @ObservedObject var logStore: LogStore
     @State private var entryToDelete: LogEntry?
     @State private var showingDeleteConfirmation = false
+    @State private var showingVoyageLog = false
     
     private var groupedEntries: [(String, [LogEntry])] {
         let dateFormatter = DateFormatter()
@@ -201,6 +160,15 @@ struct VoyageDetailView: View {
         }
         .navigationTitle(voyage.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingVoyageLog = true
+                } label: {
+                    Image(systemName: "doc.text")
+                }
+            }
+        }
         .confirmationDialog(
             "Delete Log Entry",
             isPresented: $showingDeleteConfirmation,
@@ -215,6 +183,24 @@ struct VoyageDetailView: View {
                 Text("Are you sure you want to delete this log entry? This action cannot be undone.")
             }
         )
+        .fullScreenCover(isPresented: $showingVoyageLog) {
+            NavigationView {
+                VoyageLogViewContainer(
+                    voyage: voyage,
+                    locationManager: locationManager,
+                    tileManager: tileManager,
+                    logStore: logStore,
+                    voyageStore: voyageStore
+                )
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Done") {
+                            showingVoyageLog = false
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
