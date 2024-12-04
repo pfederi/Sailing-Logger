@@ -6,12 +6,14 @@ struct SettingsView: View {
     @ObservedObject var themeManager: ThemeManager
     @ObservedObject var logStore: LogStore
     @ObservedObject var tileManager: OpenSeaMapTileManager
+    @ObservedObject var voyageStore: VoyageStore
     @Environment(\.dismiss) var dismiss
     @State private var showingDeleteConfirmation = false
     @State private var regionToDelete: String?
     @State private var showDownloadStartedAlert = false
     @Environment(\.colorScheme) var systemColorScheme  // System color scheme
     @State private var forceUpdate = UUID()  // Neuer State für Force Update
+    @State private var showingEndVoyageConfirmation = false
     
     private func showDeleteConfirmation(for region: String) {
         regionToDelete = region
@@ -106,6 +108,21 @@ struct SettingsView: View {
                 DataManagementSection(logStore: logStore)
                 
                 AboutSection()
+                
+                if let activeVoyage = voyageStore.activeVoyage {
+                    Section("Active Voyage") {
+                        VStack(alignment: .leading) {
+                            Text(activeVoyage.name)
+                                .font(.headline)
+                            Text("Started: \(activeVoyage.startDate.formatted(date: .long, time: .shortened))")
+                                .font(.caption)
+                        }
+                        
+                        Button("End Voyage", role: .destructive) {
+                            showingEndVoyageConfirmation = true
+                        }
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -116,6 +133,20 @@ struct SettingsView: View {
                     }
                 }
             }
+            .confirmationDialog(
+                "End Voyage",
+                isPresented: $showingEndVoyageConfirmation,
+                actions: {
+                    Button("End Voyage", role: .destructive) {
+                        if let activeVoyage = voyageStore.activeVoyage {
+                            voyageStore.endVoyage(activeVoyage)
+                        }
+                    }
+                },
+                message: {
+                    Text("Are you sure you want to end the current voyage? This action cannot be undone.")
+                }
+            )
         }
         .presentationDragIndicator(.visible)
         .preferredColorScheme(themeManager.storedColorScheme == "system" ? systemColorScheme : themeManager.colorScheme)

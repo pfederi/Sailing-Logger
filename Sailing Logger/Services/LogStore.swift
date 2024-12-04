@@ -8,13 +8,38 @@ class LogStore: ObservableObject {
     private let savePath = FileManager.documentsDirectory.appendingPathComponent("SavedEntries")
     @Published var importStats: ImportStats?
     
-    init() {
+    private let voyageStore: VoyageStore
+    
+    init(voyageStore: VoyageStore) {
+        self.voyageStore = voyageStore
         loadEntries()
+        
+        // Observer für Änderungen am activeVoyage
+        Task { @MainActor in
+            for await _ in voyageStore.$activeVoyage.values {
+                loadEntries()
+            }
+        }
+    }
+    
+    var activeVoyageEntries: [LogEntry] {
+        if let activeVoyage = voyageStore.activeVoyage {
+            return entries.filter { entry in
+                activeVoyage.logEntries.contains { $0.id == entry.id }
+            }
+        }
+        return []
     }
     
     func addEntry(_ entry: LogEntry) {
-        entries.append(entry)
-        save()
+        if let activeVoyage = voyageStore.activeVoyage {
+            entries.append(entry)
+            if let index = voyageStore.voyages.firstIndex(where: { $0.id == activeVoyage.id }) {
+                voyageStore.voyages[index].logEntries.append(entry)
+                voyageStore.save()
+            }
+            save()
+        }
     }
     
     private func save() {
@@ -29,8 +54,18 @@ class LogStore: ObservableObject {
     private func loadEntries() {
         do {
             let data = try Data(contentsOf: savePath)
-            entries = try JSONDecoder().decode([LogEntry].self, from: data)
-            print("Loaded \(entries.count) entries")
+            let allEntries = try JSONDecoder().decode([LogEntry].self, from: data)
+            
+            // Nur Einträge des aktiven Voyages laden
+            if let activeVoyage = voyageStore.activeVoyage {
+                entries = allEntries.filter { entry in
+                    activeVoyage.logEntries.contains { $0.id == entry.id }
+                }
+            } else {
+                entries = []
+            }
+            
+            print("Loaded \(entries.count) entries for active voyage")
         } catch {
             entries = []
             print("No saved entries found")
@@ -39,12 +74,23 @@ class LogStore: ObservableObject {
     
     func deleteEntry(_ entry: LogEntry) {
         entries.removeAll { $0.id == entry.id }
+        if let activeVoyage = voyageStore.activeVoyage,
+           let voyageIndex = voyageStore.voyages.firstIndex(where: { $0.id == activeVoyage.id }) {
+            voyageStore.voyages[voyageIndex].logEntries.removeAll { $0.id == entry.id }
+            voyageStore.save()
+        }
         save()
     }
     
     func updateEntry(_ entry: LogEntry) {
         if let index = entries.firstIndex(where: { $0.id == entry.id }) {
             entries[index] = entry
+            if let activeVoyage = voyageStore.activeVoyage,
+               let voyageIndex = voyageStore.voyages.firstIndex(where: { $0.id == activeVoyage.id }),
+               let entryIndex = voyageStore.voyages[voyageIndex].logEntries.firstIndex(where: { $0.id == entry.id }) {
+                voyageStore.voyages[voyageIndex].logEntries[entryIndex] = entry
+                voyageStore.save()
+            }
             save()
         }
     }

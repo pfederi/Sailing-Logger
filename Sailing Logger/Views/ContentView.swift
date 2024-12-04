@@ -3,58 +3,150 @@ import MapKit
 import CoreLocation
 
 struct ContentView: View {
-    @StateObject private var logStore = LogStore()
+    @StateObject private var voyageStore = VoyageStore()
+    @StateObject private var logStore: LogStore
     @StateObject private var locationManager = LocationManager()
     @StateObject private var tileManager = OpenSeaMapTileManager()
     @StateObject private var themeManager = ThemeManager()
     @State private var showingSettings = false
     @State private var showingNewEntry = false
+    @State private var showingNewVoyage = false
+    @State private var showingArchive = false
+    @State private var showingEditVoyage = false
+    @State private var showingEndVoyageConfirmation = false
+    
+    init() {
+        let voyageStore = VoyageStore()
+        _voyageStore = StateObject(wrappedValue: voyageStore)
+        _logStore = StateObject(wrappedValue: LogStore(voyageStore: voyageStore))
+    }
+    
+    private var shouldShowNewVoyage: Bool {
+        voyageStore.voyages.isEmpty || !voyageStore.hasActiveVoyage
+    }
     
     var body: some View {
         NavigationView {
             ZStack {
                 // Background
-                    Color.clear.overlay(
-                        Image("background-image")
-                                .resizable()
-                                .scaledToFill()
-                                )
-                        .ignoresSafeArea()
-                        .opacity(0.33)
-                LogEntriesListView(
-                    logStore: logStore,
-                    locationManager: locationManager,
-                    tileManager: tileManager
+                Color.clear.overlay(
+                    Image("background-image")
+                        .resizable()
+                        .scaledToFill()
                 )
-                    .navigationTitle("Sailing Logger")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                showingSettings = true
+                .ignoresSafeArea()
+                .opacity(0.33)
+                
+                VStack(spacing: 0) {
+                    // Voyage Header
+                    if let activeVoyage = voyageStore.activeVoyage {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.secondary)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Voyage:")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Text(activeVoyage.name)
+                                        .font(.headline)
+                                }
+                                
+                                Spacer()
+                                Menu {
+                                    Button {
+                                        showingEditVoyage = true
+                                    } label: {
+                                        Label("Edit Voyage", systemImage: "pencil")
+                                    }
+                                    
+                                    Button(role: .destructive) {
+                                        showingEndVoyageConfirmation = true
+                                    } label: {
+                                        Label("End Voyage", systemImage: "xmark.circle")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis.circle")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color(UIColor.systemBackground).opacity(0.9))
+                    }
+                    
+                    // LogEntriesListView
+                    if voyageStore.hasActiveVoyage {
+                        LogEntriesListView(
+                            logStore: logStore,
+                            voyageStore: voyageStore,
+                            locationManager: locationManager,
+                            tileManager: tileManager
+                        )
+                    } else {
+                        Spacer()
+                        Text("Start a new Voyage to begin logging entries.")
+                            .padding()
+                        Spacer()
+                    }
+                }
+                .navigationTitle("Sailing Logger")
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gear")
+                        }
+                    }
+                    
+                    ToolbarItemGroup(placement: .navigationBarLeading) {
+                        if voyageStore.voyages.contains(where: { $0.endDate != nil }) {
+                            NavigationLink {
+                                VoyageArchiveView(
+                                    voyageStore: voyageStore,
+                                    locationManager: locationManager,
+                                    tileManager: tileManager,
+                                    logStore: logStore
+                                )
                             } label: {
-                                Image(systemName: "gear")
-                                    .padding(.trailing, 4)
+                                Text("Archive")
                             }
                         }
                     }
+                }
                 
+                // Action Button
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
                         Button {
-                            showingNewEntry = true
+                            if shouldShowNewVoyage {
+                                showingNewVoyage = true
+                            } else {
+                                showingNewEntry = true
+                            }
                         } label: {
-                            Image(systemName: "plus")
-                                .font(.title2.bold())
-                                .foregroundColor(.white)
-                                .frame(width: 60, height: 60)
-                                .background(Color.accentColor)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
+                            HStack(spacing: 16) {
+                                Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
+                                    .font(.title2)
+                                if shouldShowNewVoyage {
+                                    Text("New Voyage")
+                                        .font(.title3)
+                                }
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .frame(height: 56)
+                            .background(Color.blue)
+                            .clipShape(Capsule())
+                            .shadow(radius: 4)
                         }
-                        .padding(.trailing, 32  )
-                        .padding(.bottom, 0)
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 24)
                     }
                 }
             }
@@ -62,7 +154,8 @@ struct ContentView: View {
                 SettingsView(
                     themeManager: themeManager,
                     logStore: logStore,
-                    tileManager: tileManager
+                    tileManager: tileManager,
+                    voyageStore: voyageStore
                 )
             }
             .sheet(isPresented: $showingNewEntry) {
@@ -75,7 +168,30 @@ struct ContentView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingNewVoyage) {
+                NewVoyageView(voyageStore: voyageStore)
+            }
+            .sheet(isPresented: $showingEditVoyage) {
+                if let activeVoyage = voyageStore.activeVoyage {
+                    EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
+                }
+            }
+            .confirmationDialog(
+                "End Voyage",
+                isPresented: $showingEndVoyageConfirmation,
+                actions: {
+                    Button("End Voyage", role: .destructive) {
+                        if let activeVoyage = voyageStore.activeVoyage {
+                            voyageStore.endVoyage(activeVoyage)
+                        }
+                    }
+                },
+                message: {
+                    Text("Are you sure you want to end the current voyage? This action cannot be undone.")
+                }
+            )
         }
+        .navigationViewStyle(.columns)
         .preferredColorScheme(themeManager.colorScheme)
         .alert("Offline", isPresented: $tileManager.showOfflineAlert) {
             Button("OK", role: .cancel) { }
@@ -84,6 +200,9 @@ struct ContentView: View {
         }
         .task {
             await logStore.updateLocationDescriptions()
+        }
+        .onAppear {
+            voyageStore.resetActiveVoyageIfCompleted()
         }
     }
 }

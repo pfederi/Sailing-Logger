@@ -1,14 +1,18 @@
 import SwiftUI
 import MapKit
+// Importieren Sie das Modul, das OpenSeaMapTileManager enthält
+// import YourModuleName
 
 struct LogEntryDetailView: View {
-    @ObservedObject var logStore: LogStore
-    @ObservedObject var locationManager: LocationManager
-    @ObservedObject var tileManager: OpenSeaMapTileManager
     @State var entry: LogEntry
+    var isArchived: Bool = false  // Default ist false für normale Ansicht
     @Environment(\.dismiss) var dismiss
     @State private var showingDeleteConfirmation = false
     @State private var showingEditSheet = false
+    @ObservedObject var voyageStore: VoyageStore
+    @ObservedObject var locationManager: LocationManager
+    @ObservedObject var tileManager: OpenSeaMapTileManager // Verwenden Sie den korrekten Typ
+    @ObservedObject var logStore: LogStore
     
     var body: some View {
         List {
@@ -134,22 +138,25 @@ struct LogEntryDetailView: View {
                 }
             }
         }
+        .navigationTitle("Log Entry Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Menu {
-                Button {
-                    showingEditSheet = true
+            if !isArchived {  // Nur anzeigen, wenn nicht archiviert
+                Menu {
+                    Button {
+                        showingEditSheet = true
+                    } label: {
+                        Label("Edit Entry", systemImage: "pencil")
+                    }
+                    
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete Entry", systemImage: "trash")
+                    }
                 } label: {
-                    Label("Edit Entry", systemImage: "pencil")
+                    Image(systemName: "ellipsis.circle")
                 }
-                
-                Button(role: .destructive) {
-                    showingDeleteConfirmation = true
-                } label: {
-                    Label("Delete Entry", systemImage: "trash")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
             }
         }
         .confirmationDialog(

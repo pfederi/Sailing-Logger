@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LogEntriesListView: View {
     @ObservedObject var logStore: LogStore
+    @ObservedObject var voyageStore: VoyageStore
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @State private var showingDeleteConfirmation = false
@@ -35,6 +36,7 @@ struct LogEntriesListView: View {
                     date: date,
                     entries: entries,
                     logStore: logStore,
+                    voyageStore: voyageStore,
                     locationManager: locationManager,
                     tileManager: tileManager,
                     entryToDelete: $entryToDelete,
@@ -66,6 +68,7 @@ struct LogEntriesSection: View {
     let date: String
     let entries: [LogEntry]
     let logStore: LogStore
+    let voyageStore: VoyageStore
     let locationManager: LocationManager
     let tileManager: OpenSeaMapTileManager
     @Binding var entryToDelete: LogEntry?
@@ -75,10 +78,12 @@ struct LogEntriesSection: View {
         Section {
             ForEach(entries.sorted(by: { $0.timestamp > $1.timestamp })) { entry in
                 NavigationLink(destination: LogEntryDetailView(
-                    logStore: logStore,
+                    entry: entry,
+                    isArchived: false,
+                    voyageStore: voyageStore,
                     locationManager: locationManager,
                     tileManager: tileManager,
-                    entry: entry
+                    logStore: logStore
                 )) {
                     LogEntryRow(entry: entry)
                 }
