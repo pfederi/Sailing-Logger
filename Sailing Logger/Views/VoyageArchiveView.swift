@@ -144,6 +144,17 @@ struct VoyageDetailView: View {
         List {
             VoyageDetailsSection(voyage: voyage)
             
+            // Stats Section
+            Section("Voyage Statistics") {
+                VoyageStatsRow(title: "Total Distance", value: String(format: "%.1f nm", calculateTotalDistance()))
+                VoyageStatsRow(title: "Max Speed", value: String(format: "%.1f kts", calculateMaxSpeed()))
+                VoyageStatsRow(title: "Max Wind", value: String(format: "%.1f kts", calculateMaxWind()))
+                VoyageStatsRow(title: "Duration", value: formatDuration(calculateDuration()))
+                VoyageStatsRow(title: "Log Entries", value: "\(voyage.logEntries.count)")
+                VoyageStatsRow(title: "Motor Miles", value: String(format: "%.1f nm", calculateMotorMiles()))
+                VoyageStatsRow(title: "Strong Wind Hours", value: "\(calculateStrongWindHours())")
+            }
+            
             ForEach(groupedEntries, id: \.0) { date, entries in
                 ArchivedLogEntriesSection(
                     date: date,
@@ -201,6 +212,45 @@ struct VoyageDetailView: View {
                 }
             }
         }
+    }
+    
+    // Hilfsfunktionen für die Berechnungen
+    private func calculateTotalDistance() -> Double {
+        voyage.logEntries.reduce(0) { $0 + $1.distance }
+    }
+    
+    private func calculateMaxSpeed() -> Double {
+        voyage.logEntries.map { $0.speed }.max() ?? 0
+    }
+    
+    private func calculateMaxWind() -> Double {
+        voyage.logEntries.map { $0.wind.speedKnots }.max() ?? 0
+    }
+    
+    private func calculateDuration() -> TimeInterval {
+        if let end = voyage.endDate ?? voyage.logEntries.last?.timestamp {
+            return end.timeIntervalSince(voyage.startDate)
+        }
+        return 0
+    }
+    
+    private func calculateMotorMiles() -> Double {
+        voyage.logEntries
+            .filter { $0.engineState == .on }
+            .reduce(0) { $0 + $1.distance }
+    }
+    
+    private func calculateStrongWindHours() -> Int {
+        voyage.logEntries
+            .filter { $0.wind.beaufortForce > 5 }
+            .count
+    }
+    
+    private func formatDuration(_ interval: TimeInterval) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day, .hour, .minute]
+        formatter.unitsStyle = .full
+        return formatter.string(from: interval) ?? ""
     }
 }
 
@@ -344,5 +394,22 @@ private struct ArchivedLogEntryRow: View {
             }
             .padding(.vertical, 4)
         }
+    }
+}
+
+// Neue View für die Stats-Zeilen
+private struct VoyageStatsRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.body)
+        }
+        .padding(.vertical, 2)
     }
 } 

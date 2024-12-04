@@ -373,12 +373,12 @@ struct StatsItem: View {
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
             Text(value)
-                .font(.subheadline)
+                .font(.headline)
         }
     }
 }
