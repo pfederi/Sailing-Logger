@@ -91,7 +91,7 @@ struct VoyageLogView: View {
             .navigationTitle("Voyage Log - \(voyage.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(id: "share", placement: .navigationBarTrailing) {
                     Button {
                         createAndShareSnapshot()
                     } label: {

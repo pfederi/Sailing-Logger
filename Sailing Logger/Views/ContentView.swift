@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showingArchive = false
     @State private var showingEditVoyage = false
     @State private var showingEndVoyageConfirmation = false
+    @State private var showingVoyageDetail = false
     
     init() {
         let voyageStore = VoyageStore()
@@ -26,7 +27,7 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Background
                 Color.clear.overlay(
@@ -40,41 +41,43 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     // Voyage Header
                     if let activeVoyage = voyageStore.activeVoyage {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(alignment: .center, spacing: 12) {
-                                Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.secondary)
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Voyage:")
-                                        .font(.subheadline)
+                        NavigationLink(destination: VoyageDetailView(
+                            voyage: activeVoyage,
+                            voyageStore: voyageStore,
+                            locationManager: locationManager,
+                            tileManager: tileManager,
+                            logStore: logStore
+                        )) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(alignment: .center, spacing: 12) {
+                                    Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
+                                        .font(.system(size: 40))
                                         .foregroundColor(.secondary)
-                                    Text(activeVoyage.name)
-                                        .font(.headline)
-                                }
-                                
-                                Spacer()
-                                Menu {
-                                    Button {
-                                        showingEditVoyage = true
-                                    } label: {
-                                        Label("Edit Voyage", systemImage: "pencil")
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Voyage:")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        Text(activeVoyage.name)
+                                            .font(.headline)
                                     }
                                     
-                                    Button(role: .destructive) {
-                                        showingEndVoyageConfirmation = true
+                                    Spacer()
+                                    Menu {
+                                        Button(role: .destructive) {
+                                            showingEndVoyageConfirmation = true
+                                        } label: {
+                                            Label("End Voyage", systemImage: "xmark.circle")
+                                        }
                                     } label: {
-                                        Label("End Voyage", systemImage: "xmark.circle")
+                                        Image(systemName: "ellipsis.circle")
+                                            .foregroundColor(.accentColor)
                                     }
-                                } label: {
-                                    Image(systemName: "ellipsis.circle")
-                                        .foregroundColor(.accentColor)
                                 }
                             }
+                            .padding()
+                            .background(Color(UIColor.systemBackground).opacity(0.9))
                         }
-                        .padding()
-                        .background(Color(UIColor.systemBackground).opacity(0.9))
                     }
                     
                     // LogEntriesListView
@@ -90,31 +93,6 @@ struct ContentView: View {
                         Text("Start a new Voyage to begin logging entries.")
                             .padding()
                         Spacer()
-                    }
-                }
-                .navigationTitle("Sailing Logger")
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Image(systemName: "gear")
-                        }
-                    }
-                    
-                    ToolbarItemGroup(placement: .navigationBarLeading) {
-                        if voyageStore.voyages.contains(where: { $0.endDate != nil }) {
-                            NavigationLink {
-                                VoyageArchiveView(
-                                    voyageStore: voyageStore,
-                                    locationManager: locationManager,
-                                    tileManager: tileManager,
-                                    logStore: logStore
-                                )
-                            } label: {
-                                Text("Archive")
-                            }
-                        }
                     }
                 }
                 
@@ -133,10 +111,8 @@ struct ContentView: View {
                             HStack(spacing: 16) {
                                 Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
                                     .font(.title2)
-                                if shouldShowNewVoyage {
-                                    Text("New Voyage")
-                                        .font(.title3)
-                                }
+                                Text(shouldShowNewVoyage ? "New Voyage" : "Add Log Entry")
+                                    .font(.title3)
                             }
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
@@ -150,48 +126,68 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView(
-                    themeManager: themeManager,
-                    logStore: logStore,
-                    tileManager: tileManager,
-                    voyageStore: voyageStore
-                )
-            }
-            .sheet(isPresented: $showingNewEntry) {
-                NavigationView {
-                    NewLogEntryView(
-                        logStore: logStore,
-                        locationManager: locationManager,
-                        tileManager: tileManager,
-                        themeManager: themeManager
-                    )
-                }
-            }
-            .sheet(isPresented: $showingNewVoyage) {
-                NewVoyageView(voyageStore: voyageStore)
-            }
-            .sheet(isPresented: $showingEditVoyage) {
-                if let activeVoyage = voyageStore.activeVoyage {
-                    EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
-                }
-            }
-            .confirmationDialog(
-                "End Voyage",
-                isPresented: $showingEndVoyageConfirmation,
-                actions: {
-                    Button("End Voyage", role: .destructive) {
-                        if let activeVoyage = voyageStore.activeVoyage {
-                            voyageStore.endVoyage(activeVoyage)
-                        }
-                    }
-                },
-                message: {
-                    Text("Are you sure you want to end the current voyage? This action cannot be undone.")
-                }
+            .navigationTitle("Sailing Logger")
+            .navigationBarTitleDisplayMode(.inline)
+            .mainToolbar(
+                showSettings: { showingSettings = true },
+                hasArchivedVoyages: voyageStore.voyages.contains(where: { $0.endDate != nil }),
+                voyageStore: voyageStore,
+                locationManager: locationManager,
+                tileManager: tileManager,
+                logStore: logStore
             )
         }
-        .navigationViewStyle(.columns)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView(
+                themeManager: themeManager,
+                logStore: logStore,
+                tileManager: tileManager,
+                voyageStore: voyageStore
+            )
+        }
+        .sheet(isPresented: $showingNewEntry) {
+            NavigationView {
+                NewLogEntryView(
+                    logStore: logStore,
+                    locationManager: locationManager,
+                    tileManager: tileManager,
+                    themeManager: themeManager
+                )
+            }
+        }
+        .sheet(isPresented: $showingNewVoyage) {
+            NewVoyageView(voyageStore: voyageStore)
+        }
+        .sheet(isPresented: $showingEditVoyage) {
+            if let activeVoyage = voyageStore.activeVoyage {
+                EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
+            }
+        }
+        .confirmationDialog(
+            "End Voyage",
+            isPresented: $showingEndVoyageConfirmation,
+            actions: {
+                Button("End Voyage", role: .destructive) {
+                    if let activeVoyage = voyageStore.activeVoyage {
+                        voyageStore.endVoyage(activeVoyage)
+                    }
+                }
+            },
+            message: {
+                Text("Are you sure you want to end the current voyage? This action cannot be undone.")
+            }
+        )
+        .sheet(isPresented: $showingVoyageDetail) {
+            NavigationView {
+                VoyageDetailView(
+                    voyage: voyageStore.activeVoyage!,
+                    voyageStore: voyageStore,
+                    locationManager: locationManager,
+                    tileManager: tileManager,
+                    logStore: logStore
+                )
+            }
+        }
         .preferredColorScheme(themeManager.colorScheme)
         .alert("Offline", isPresented: $tileManager.showOfflineAlert) {
             Button("OK", role: .cancel) { }
