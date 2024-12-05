@@ -112,23 +112,14 @@ struct VoyageLogView: View {
     }
     
     private func calculateVoyageStats(_ entries: [LogEntry]) -> VoyageStats {
-        var totalDistance: Double = 0
-        var maxSpeed: Double = 0
-        var maxWindSpeed: Double = 0
-        var motorMiles: Double = 0
-        var strongWindHours: Int = 0
+        let totalDistance = entries.map { $0.distance }.max() ?? 0
+        let maxSpeed = entries.map { $0.speed }.max() ?? 0
+        let maxWindSpeed = entries.map { $0.wind.speedKnots }.max() ?? 0
         
-        for entry in entries {
-            totalDistance += entry.distance
-            maxSpeed = max(maxSpeed, entry.speed)
-            maxWindSpeed = max(maxWindSpeed, entry.wind.speedKnots)
-            
-            motorMiles += entry.distance
-            
-            if entry.wind.beaufortForce > 5 {
-                strongWindHours += 1
-            }
-        }
+        // Berechne Motormeilen aus den Teilstrecken
+        let motorMiles = calculateMotorMiles(entries)
+        
+        let strongWindHours = entries.filter { $0.wind.beaufortForce > 5 }.count
         
         return VoyageStats(
             totalDistance: totalDistance,
@@ -139,6 +130,22 @@ struct VoyageLogView: View {
             motorMiles: motorMiles,
             strongWindHours: strongWindHours
         )
+    }
+    
+    private func calculateMotorMiles(_ entries: [LogEntry]) -> Double {
+        let sortedEntries = entries.sorted { $0.timestamp < $1.timestamp }
+        var motorMiles = 0.0
+        var lastDistance = 0.0
+        
+        for entry in sortedEntries {
+            if entry.engineState == .on {
+                // Wenn Motor läuft, addiere die Differenz zur vorherigen Distanz
+                motorMiles += max(0, entry.distance - lastDistance)
+            }
+            lastDistance = entry.distance
+        }
+        
+        return motorMiles
     }
     
     private func calculateDuration() -> TimeInterval {

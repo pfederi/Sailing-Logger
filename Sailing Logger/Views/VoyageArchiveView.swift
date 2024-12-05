@@ -216,7 +216,7 @@ struct VoyageDetailView: View {
     
     // Hilfsfunktionen für die Berechnungen
     private func calculateTotalDistance() -> Double {
-        voyage.logEntries.reduce(0) { $0 + $1.distance }
+        return voyage.logEntries.map { $0.distance }.max() ?? 0
     }
     
     private func calculateMaxSpeed() -> Double {
@@ -235,9 +235,18 @@ struct VoyageDetailView: View {
     }
     
     private func calculateMotorMiles() -> Double {
-        voyage.logEntries
-            .filter { $0.engineState == .on }
-            .reduce(0) { $0 + $1.distance }
+        let sortedEntries = voyage.logEntries.sorted { $0.timestamp < $1.timestamp }
+        var motorMiles = 0.0
+        var lastDistance = 0.0
+        
+        for entry in sortedEntries {
+            if entry.engineState == .on {
+                motorMiles += max(0, entry.distance - lastDistance)
+            }
+            lastDistance = entry.distance
+        }
+        
+        return motorMiles
     }
     
     private func calculateStrongWindHours() -> Int {
