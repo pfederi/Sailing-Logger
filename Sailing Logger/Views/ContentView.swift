@@ -29,14 +29,21 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color.clear.overlay(
-                    Image("background-image")
-                        .resizable()
-                        .scaledToFill()
-                )
-                .ignoresSafeArea()
-                .opacity(0.33)
+                // Background - only show when no active voyage
+                if shouldShowNewVoyage {
+                    if let _ = UIImage(named: "background-image") {
+                        Color.clear.overlay(
+                            Image("background-image")
+                                .resizable()
+                                .scaledToFill()
+                        )
+                        .ignoresSafeArea()
+                        .opacity(0.33)
+                    } else {
+                        MaritimeColors.oceanBlue
+                            .ignoresSafeArea()
+                    }
+                }
                 
                 VStack(spacing: 0) {
                     // Voyage Header
@@ -64,32 +71,34 @@ struct ContentView: View {
                                     }
                                     
                                     Spacer()
-                                    Menu {
-                                        Button(role: .destructive) {
-                                            showingEndVoyageConfirmation = true
-                                        } label: {
-                                            Label("End Voyage", systemImage: "xmark.circle")
-                                                .foregroundColor(MaritimeColors.navy)
-                                        }
-                                    } label: {
-                                        Image(systemName: "ellipsis.circle")
-                                            .foregroundColor(MaritimeColors.navy)
-                                    }
                                 }
                             }
                             .padding()
                             .background(Color(UIColor.systemBackground).opacity(0.9))
                         }
+                        
+                        Rectangle()
+                            .fill(MaritimeColors.seafoam)
+                            .frame(height: 1)
                     }
                     
                     // LogEntriesListView
                     if voyageStore.hasActiveVoyage {
-                        LogEntriesListView(
-                            logStore: logStore,
-                            voyageStore: voyageStore,
-                            locationManager: locationManager,
-                            tileManager: tileManager
-                        )
+                        if logStore.entries.isEmpty {
+                            Spacer()
+                            Text("Add your first log entry to start tracking your voyage.")
+                                .padding()
+                                .foregroundColor(MaritimeColors.navy)
+                            Spacer()
+                        } else {
+                            LogEntriesListView(
+                                logStore: logStore,
+                                voyageStore: voyageStore,
+                                locationManager: locationManager,
+                                tileManager: tileManager
+                            )
+                            .background(Color(UIColor.systemGray6).opacity(0.5))
+                        }
                     } else {
                         Spacer()
                         Text("Start a new Voyage to begin logging entries.")
@@ -166,14 +175,21 @@ struct ContentView: View {
                     tileManager: tileManager,
                     themeManager: themeManager
                 )
+                .tint(MaritimeColors.navy)
             }
         }
         .sheet(isPresented: $showingNewVoyage) {
-            NewVoyageView(voyageStore: voyageStore)
+            NavigationView {
+                NewVoyageView(voyageStore: voyageStore)
+                    .tint(MaritimeColors.navy)
+            }
         }
         .sheet(isPresented: $showingEditVoyage) {
             if let activeVoyage = voyageStore.activeVoyage {
-                EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
+                NavigationView {
+                    EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
+                        .tint(MaritimeColors.navy)
+                }
             }
         }
         .confirmationDialog(

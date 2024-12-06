@@ -149,6 +149,8 @@ struct VoyageDetailView: View {
         updatedVoyage.endDate = Date()
         if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
             voyageStore.voyages[index] = updatedVoyage
+            dismiss()
+            voyageStore.resetActiveVoyageIfCompleted()
         }
     }
 } 

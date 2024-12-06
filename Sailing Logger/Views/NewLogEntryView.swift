@@ -838,6 +838,7 @@ struct NewLogEntryView: View {
                     saveEntryAndScheduleNotification()
                 }) {
                     Text("Save")
+                    .fontWeight(.semibold)
                 }
                 .disabled(locationManager.currentLocation == nil)
             }

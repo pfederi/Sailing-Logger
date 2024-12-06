@@ -15,6 +15,7 @@ struct Sailing_LoggerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .tint(MaritimeColors.navy)
         }
     }
 }
