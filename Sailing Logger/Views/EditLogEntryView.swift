@@ -850,8 +850,10 @@ struct EditLogEntryView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .onAppear {
-                // Speichere die Referenz zur MapView wenn sie erscheint
-                if let mapView = (UIApplication.shared.windows.first?.rootViewController?.view.subviews.first { $0 is MKMapView }) as? MKMapView {
+                // Finde die MapView über die neue Scene-API
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first,
+                   let mapView = window.rootViewController?.view.subviews.first(where: { $0 is MKMapView }) as? MKMapView {
                     self.mapView = mapView
                 }
             }
