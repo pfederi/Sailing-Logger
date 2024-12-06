@@ -30,7 +30,7 @@ struct LogEntryDetailView: View {
                     locationManager: locationManager,
                     tileManager: tileManager,
                     coordinates: entry.coordinates,
-                    crew: entry.voyage?.crew ?? []
+                    logEntries: logStore.entries
                 )
                 .frame(height: 270)
                 .listRowInsets(EdgeInsets())

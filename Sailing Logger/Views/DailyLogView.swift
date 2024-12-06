@@ -137,12 +137,16 @@ struct DailyLogView: View {
                 return
             }
             
-            // Zeichne die Punkte auf den Snapshot
+            // Zeichne die Route auf den Snapshot
             UIGraphicsBeginImageContextWithOptions(snapshot.image.size, true, snapshot.image.scale)
             snapshot.image.draw(at: .zero)
             
             if let context = UIGraphicsGetCurrentContext() {
                 let points = coordinates.map { snapshot.point(for: $0) }
+                
+                // Zeichne die Route
+                context.setLineWidth(2.0)
+                context.setStrokeColor(UIColor.blue.cgColor)
                 
                 // Zeichne jeden Punkt der Route mit Zeitstempel
                 for (index, point) in points.enumerated() {
@@ -179,6 +183,35 @@ struct DailyLogView: View {
                     // Zeichne den Text
                     (time as NSString).draw(
                         at: CGPoint(x: point.x + 10, y: point.y - timeSize.height/2),
+                        withAttributes: attributes
+                    )
+                }
+                
+                // Zeichne Orcas für Einträge mit Orca-Erwähnungen
+                for entry in entries {
+                    guard let notes = entry.notes?.lowercased(),
+                          ["orca", "killerwhale", "killer whale", "killerwal"].contains(where: notes.contains) else {
+                        continue
+                    }
+                    
+                    // Positioniere den Orca westlich (links) von der Position des Eintrags
+                    let entryPosition = entry.coordinates.toCLLocationCoordinate2D()
+                    let orcaPosition = CLLocationCoordinate2D(
+                        latitude: entryPosition.latitude,  // gleiche Breite
+                        longitude: entryPosition.longitude - 0.5
+                    )
+                    
+                    // Zeichne Orca-Symbol
+                    let orcaPoint = snapshot.point(for: orcaPosition)
+                    
+                    // Füge Orca-Emoji hinzu
+                    let orcaEmoji = "🐋"
+                    let attributes: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 16),
+                        .foregroundColor: UIColor.black
+                    ]
+                    (orcaEmoji as NSString).draw(
+                        at: CGPoint(x: orcaPoint.x + 8, y: orcaPoint.y - 8),
                         withAttributes: attributes
                     )
                 }
@@ -509,6 +542,9 @@ struct RouteMapView: UIViewRepresentable {
                 mapView.addAnnotation(annotation)
             }
             
+            // Füge Orcas hinzu
+            EasterEggService.addOrcaIfMentioned(mapView: mapView, logEntries: entries)
+            
             // Berechne die Grenzen aller Koordinaten
             let coordinates = routeCoordinates.map { $0.toCLLocationCoordinate2D() }
             let rect = coordinates.reduce(MKMapRect.null) { rect, coordinate in
@@ -596,6 +632,9 @@ struct RouteMapView: UIViewRepresentable {
                 let annotation = RoutePointAnnotation(entry: entry)
                 mapView.addAnnotation(annotation)
             }
+            
+            // Füge Orcas hinzu
+            EasterEggService.addOrcaIfMentioned(mapView: mapView, logEntries: entries)
         }
         
         // Update selected annotation
@@ -620,40 +659,89 @@ struct RouteMapView: UIViewRepresentable {
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            guard let routeAnnotation = annotation as? RoutePointAnnotation else { return nil }
-            
-            let identifier = "RoutePoint"
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            
-            if annotationView == nil {
-                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                annotationView?.canShowCallout = true
-            }
-            
-            // Verwende das eigene SVG-Icon mit doppelter Größe und coral Farbe
-            if let originalImage = UIImage(named: "route-marker") {
-                let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
-                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+            if let orcaAnnotation = annotation as? OrcaAnnotation {
+                let identifier = "OrcaAnnotation"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
                 
-                if let context = UIGraphicsGetCurrentContext() {
-                    context.scaleBy(x: 2.0, y: 2.0)
-                    originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: orcaAnnotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
                 }
                 
-                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
+                // Verwende das Wal-Icon
+                if let originalImage = UIImage(named: "whale-marker") {
+                    let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                    
+                    if let context = UIGraphicsGetCurrentContext() {
+                        context.scaleBy(x: 2.0, y: 2.0)
+                        originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                    }
+                    
+                    annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                    UIGraphicsEndImageContext()
+                }
+                
+                return annotationView
+                
+            } else if let dolphinAnnotation = annotation as? DolphinAnnotation {
+                let identifier = "DolphinAnnotation"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+                
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: dolphinAnnotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                }
+                
+                // Verwende das Delfin-Icon
+                if let originalImage = UIImage(named: "dolphin-marker") {
+                    let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                    
+                    if let context = UIGraphicsGetCurrentContext() {
+                        context.scaleBy(x: 2.0, y: 2.0)
+                        originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                    }
+                    
+                    annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                    UIGraphicsEndImageContext()
+                }
+                
+                return annotationView
+                
+            } else if let routeAnnotation = annotation as? RoutePointAnnotation {
+                let identifier = "RoutePoint"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+                
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: routeAnnotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                }
+                
+                // Standard Route-Marker
+                if let originalImage = UIImage(named: "route-marker") {
+                    let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                    
+                    if let context = UIGraphicsGetCurrentContext() {
+                        context.scaleBy(x: 2.0, y: 2.0)
+                        originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                    }
+                    
+                    annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                    UIGraphicsEndImageContext()
+                }
+                
+                // Add time label to callout
+                let timeLabel = UILabel()
+                timeLabel.text = routeAnnotation.entry.timestamp.formatted(date: .omitted, time: .shortened)
+                timeLabel.font = .systemFont(ofSize: 12)
+                annotationView?.detailCalloutAccessoryView = timeLabel
+                
+                return annotationView
             }
             
-            // Stelle sicher, dass der Ankerpunkt des Icons genau auf der Koordinate liegt
-            annotationView?.centerOffset = CGPoint(x: 0, y: 0)
-            
-            // Add time label to callout
-            let timeLabel = UILabel()
-            timeLabel.text = routeAnnotation.entry.timestamp.formatted(date: .omitted, time: .shortened)
-            timeLabel.font = .systemFont(ofSize: 12)
-            annotationView?.detailCalloutAccessoryView = timeLabel
-            
-            return annotationView
+            return nil
         }
         
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {

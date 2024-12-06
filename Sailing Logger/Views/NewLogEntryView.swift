@@ -62,6 +62,8 @@ struct NewLogEntryView: View {
     
     @State private var maxDate = Date()
     
+    @State private var mapView: MKMapView?
+    
     private enum Field: Hashable, CaseIterable {
         case latitudeDegrees
         case latitudeMinutes
@@ -458,19 +460,49 @@ struct NewLogEntryView: View {
     }
     
     private var mapSection: some View {
-        let store = logStore as LogStore
-        return Section {
+        Section {
             MapView(
                 locationManager: locationManager,
                 tileManager: tileManager,
                 coordinates: coordinates,
-                crew: store.currentVoyage?.crew ?? []
+                logEntries: logStore.entries
             )
             .frame(height: 270)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
+            .onAppear {
+                if let mapView = (UIApplication.shared.windows.first?.rootViewController?.view.subviews.first { $0 is MKMapView }) as? MKMapView {
+                    self.mapView = mapView
+                }
+            }
         }
         .listSectionSpacing(.compact)
+    }
+    
+    private var notesSection: some View {
+        Section("Notes") {
+            VStack(alignment: .leading) {
+                HStack(alignment: .top) {
+                    Image(systemName: "note.text")
+                        .frame(width: 24)
+                        .foregroundColor(MaritimeColors.navy)
+                        .padding(.top, 10)
+                    TextEditor(text: $notes)
+                        .frame(height: 100)
+                        .focused($focusedField, equals: .notes)
+                        .id(Field.notes)
+                        .onChange(of: notes) { _, _ in
+                            // Aktualisiere die Map sofort wenn sich die Notes ändern
+                            if let mapView = mapView {
+                                EasterEggService.addOrcaIfMentioned(
+                                    mapView: mapView,
+                                    logEntries: [createNewEntry()]
+                                )
+                            }
+                        }
+                }
+            }
+        }
     }
     
     var body: some View {
@@ -811,19 +843,7 @@ struct NewLogEntryView: View {
                 }
             }
             
-            Section("Notes") {
-                VStack(alignment: .leading) {
-                    HStack(alignment: .top) {
-                        Image(systemName: "note.text")
-                            .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
-                            .padding(.top, 10)
-                        TextEditor(text: $notes)
-                            .frame(height: 100)
-                            .focused($focusedField, equals: .notes)
-                    }
-                }
-            }
+            notesSection
             
             HStack {
                 Text("Fields marked with ")

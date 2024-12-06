@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 struct EditLogEntryView: View {
     @Environment(\.dismiss) var dismiss
@@ -36,6 +37,7 @@ struct EditLogEntryView: View {
     @State private var longitudeDirection: Bool  // true = E, false = W
     @State private var coordinatesError: String?
     @State private var maxDate = Date()
+    @State private var mapView: MKMapView?
     
     private enum Field: Hashable, CaseIterable {
         case latitudeDegrees
@@ -734,6 +736,32 @@ struct EditLogEntryView: View {
                         .frame(height: 100)
                         .focused($focusedField, equals: .notes)
                         .id(Field.notes)
+                        .onChange(of: notes) { _, _ in
+                            // Aktualisiere die Map sofort wenn sich die Notes ändern
+                            if let mapView = mapView {
+                                EasterEggService.addOrcaIfMentioned(
+                                    mapView: mapView,
+                                    logEntries: [LogEntry(
+                                        id: entry.id,
+                                        timestamp: timestamp,
+                                        coordinates: coordinates,
+                                        distance: distance ?? 0,
+                                        magneticCourse: magneticCourse ?? 0,
+                                        courseOverGround: courseOverGround ?? 0,
+                                        barometer: barometer ?? 1013.25,
+                                        temperature: temperature ?? 0,
+                                        visibility: visibility ?? 0,
+                                        cloudCover: cloudCover ?? 0,
+                                        wind: Wind(direction: windDirection, speedKnots: windSpeed ?? 0, beaufortForce: windSpeedBft),
+                                        speed: speed ?? 0,
+                                        engineState: engineState,
+                                        maneuver: selectedManeuver,
+                                        notes: notes,
+                                        sails: sails
+                                    )]
+                                )
+                            }
+                        }
                 }
             }
         }
@@ -816,11 +844,17 @@ struct EditLogEntryView: View {
                 locationManager: locationManager,
                 tileManager: tileManager,
                 coordinates: coordinates,
-                crew: entry.voyage?.crew ?? []
+                logEntries: logStore.entries
             )
             .frame(height: 270)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
+            .onAppear {
+                // Speichere die Referenz zur MapView wenn sie erscheint
+                if let mapView = (UIApplication.shared.windows.first?.rootViewController?.view.subviews.first { $0 is MKMapView }) as? MKMapView {
+                    self.mapView = mapView
+                }
+            }
         }
         .listSectionSpacing(.compact)
     }

@@ -10,7 +10,7 @@ struct MapView: UIViewRepresentable {
     let locationManager: LocationManager
     let tileManager: OpenSeaMapTileManager
     var coordinates: Coordinates
-    var crew: [CrewMember]
+    var logEntries: [LogEntry]
     @State private var isOnline: Bool = false
     
     func makeUIView(context: Context) -> MKMapView {
@@ -33,8 +33,8 @@ struct MapView: UIViewRepresentable {
         // Prüfe Netzwerkverbindung und lade entsprechende Karten
         checkConnectivityAndLoadMaps(mapView)
         
-        // Easter Egg Check
-        EasterEggService.addOrcasIfNaomiPresent(mapView: mapView, crew: crew)
+        // Easter Egg Check - Stelle sicher, dass die logEntries übergeben werden
+        EasterEggService.addOrcaIfMentioned(mapView: mapView, logEntries: logEntries)
         
         return mapView
     }
@@ -177,6 +177,14 @@ struct MapView: UIViewRepresentable {
             )
             mapView.setRegion(region, animated: true)
         }
+        
+        // Aktualisiere auch die Orcas
+        mapView.annotations.forEach { annotation in
+            if annotation is OrcaAnnotation {
+                mapView.removeAnnotation(annotation)
+            }
+        }
+        EasterEggService.addOrcaIfMentioned(mapView: mapView, logEntries: logEntries)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -249,18 +257,80 @@ struct MapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            if annotation is OrcaAnnotation {
-                let identifier = "Orca"
+            if let orcaAnnotation = annotation as? OrcaAnnotation {
+                print("🐋 Creating view for orca annotation")
+                
+                let identifier = "OrcaAnnotation"
                 var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
                 
                 if annotationView == nil {
-                    annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                    annotationView = MKAnnotationView(annotation: orcaAnnotation, reuseIdentifier: identifier)
                     annotationView?.canShowCallout = true
+                } else {
+                    annotationView?.annotation = annotation
                 }
                 
-                // Verwende das Orca-PNG aus den Assets
-                annotationView?.image = UIImage(named: "orca-marker")
+                // Setze das Orca-Emoji als Bild
+                let label = UILabel()
+                label.text = "🐋"
+                label.font = .systemFont(ofSize: 30)
+                let size = CGSize(width: 50, height: 50)
+                
+                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                if let context = UIGraphicsGetCurrentContext() {
+                    let textSize = label.intrinsicContentSize
+                    let point = CGPoint(
+                        x: (size.width - textSize.width) / 2,
+                        y: (size.height - textSize.height) / 2
+                    )
+                    label.frame = CGRect(origin: point, size: textSize)
+                    label.layer.render(in: context)
+                }
+                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+                
+                annotationView?.zPriority = .max
+                annotationView?.centerOffset = CGPoint(x: 0, y: -20)
+                
                 return annotationView
+                
+            } else if let dolphinAnnotation = annotation as? DolphinAnnotation {
+                print("🐬 Creating view for dolphin annotation")
+                
+                let identifier = "DolphinAnnotation"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+                
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: dolphinAnnotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                } else {
+                    annotationView?.annotation = annotation
+                }
+                
+                // Setze das Delfin-Emoji als Bild
+                let label = UILabel()
+                label.text = "🐬"
+                label.font = .systemFont(ofSize: 30)
+                let size = CGSize(width: 50, height: 50)
+                
+                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                if let context = UIGraphicsGetCurrentContext() {
+                    let textSize = label.intrinsicContentSize
+                    let point = CGPoint(
+                        x: (size.width - textSize.width) / 2,
+                        y: (size.height - textSize.height) / 2
+                    )
+                    label.frame = CGRect(origin: point, size: textSize)
+                    label.layer.render(in: context)
+                }
+                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+                
+                annotationView?.zPriority = .max
+                annotationView?.centerOffset = CGPoint(x: 0, y: -20)
+                
+                return annotationView
+                
             } else if annotation is PositionAnnotation {
                 let identifier = "Location"
                 var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)

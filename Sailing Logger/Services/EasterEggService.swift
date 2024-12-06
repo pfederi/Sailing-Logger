@@ -1,65 +1,89 @@
 import MapKit
 
-// Custom Annotation für Orcas
+// Custom Annotation für Orcas und Delfine
 class OrcaAnnotation: MKPointAnnotation {
     // Leere Klasse als Marker-Typ für Orcas
 }
 
+class DolphinAnnotation: MKPointAnnotation {
+    // Leere Klasse als Marker-Typ für Delfine
+}
+
 struct EasterEggService {
-    static func addOrcasIfNaomiPresent(mapView: MKMapView, crew: [CrewMember]) {
-        // Prüfe, ob Naomi im Crew Array ist
-        let naomiPresent = crew.contains { $0.name.lowercased() == "naomi shepherd" }
+    static func addOrcaIfMentioned(mapView: MKMapView, logEntries: [LogEntry]) {
+        // Entferne zuerst alle existierenden Meeressäuger-Annotationen
+        let existingMarkers = mapView.annotations.filter { $0 is OrcaAnnotation || $0 is DolphinAnnotation }
+        mapView.removeAnnotations(existingMarkers)
         
-        guard naomiPresent else { return }
+        print("🐋🐬 Checking \(logEntries.count) entries for marine mammals...")
         
-        // Entferne ALLE existierenden Annotationen
-        let allAnnotations = mapView.annotations
-        mapView.removeAnnotations(allAnnotations)
-        
-        // Finde den Hauptmarker aus den entfernten Annotationen
-        guard let marker = allAnnotations.first(where: { $0 is PositionAnnotation }) else { return }
-        
-        // Füge den Hauptmarker zuerst wieder hinzu
-        mapView.addAnnotation(marker)
-        
-        let markerPosition = marker.coordinate
-        print("Marker position: \(markerPosition)")
-        
-        // Vordefinierte Richtungen für die Orcas (in Grad)
-        let directions = [45.0, 135.0, 225.0, 315.0] // NE, SE, SW, NW
-        
-        // Füge 1-3 Orcas in der Nähe hinzu
-        let numberOfOrcas = Int.random(in: 1...3)
-        var usedDirections = directions.shuffled()
-        
-        for i in 0..<numberOfOrcas {
-            let direction = usedDirections[i] * .pi / 180.0 // Umrechnung in Radiant
-            let distance = Double.random(in: 0.02...0.05)   // 2-5km
+        for entry in logEntries {
+            guard let notes = entry.notes?.lowercased() else { 
+                continue 
+            }
             
-            // Berechne Position
-            let latOffset = distance * cos(direction)
-            let lonOffset = distance * sin(direction)
+            // Prüfe ob in den Notes ein Orca-Begriff vorkommt
+            let orcaKeywords = [
+                // Englisch
+                "orca", "killer whale", "killerwhale",
+                "whale", "whales",
+                // Deutsch
+                "wal", "wale", "killerwal", "killerwale",
+                "schwertwal", "schwertwale",
+                "meeressäuger"
+            ]
             
-            let randomCoordinate = CLLocationCoordinate2D(
-                latitude: markerPosition.latitude + latOffset,
-                longitude: markerPosition.longitude + lonOffset
-            )
+            // Prüfe ob in den Notes ein Delfin-Begriff vorkommt
+            let dolphinKeywords = [
+                // Englisch
+                "dolphin", "dolphins", "porpoise", "porpoises",
+                // Deutsch
+                "delfin", "delfine", "delphin", "delphine",
+                "tümmler", "schweinswal", "schweinswale"
+            ]
             
-            print("Orca \(i): direction=\(direction), distance=\(distance), final position=\(randomCoordinate)")
+            let entryPosition = entry.coordinates.toCLLocationCoordinate2D()
             
-            let orcaAnnotation = OrcaAnnotation()
-            orcaAnnotation.coordinate = randomCoordinate
-            orcaAnnotation.title = "🐋 Orca"
-            orcaAnnotation.subtitle = "Hi Naomi! 👋"
+            if orcaKeywords.contains(where: notes.contains) {
+                print("🐋 Found orca mention in notes: \(notes)")
+                
+                // Positioniere den Orca leicht westlich (links) von der Position des Eintrags
+                let orcaPosition = CLLocationCoordinate2D(
+                    latitude: entryPosition.latitude,
+                    longitude: entryPosition.longitude - 0.02
+                )
+                
+                let annotation = OrcaAnnotation()
+                annotation.coordinate = orcaPosition
+                annotation.title = "🐋 Orca"
+                annotation.subtitle = "Look, an Orca! 🌊"
+                
+                print("🐋 Adding orca at position: \(orcaPosition.latitude), \(orcaPosition.longitude)")
+                mapView.addAnnotation(annotation)
+            }
             
-            mapView.addAnnotation(orcaAnnotation)
+            if dolphinKeywords.contains(where: notes.contains) {
+                print("🐬 Found dolphin mention in notes: \(notes)")
+                
+                // Positioniere den Delfin leicht östlich (rechts) von der Position des Eintrags
+                let dolphinPosition = CLLocationCoordinate2D(
+                    latitude: entryPosition.latitude,
+                    longitude: entryPosition.longitude + 0.02
+                )
+                
+                let annotation = DolphinAnnotation()
+                annotation.coordinate = dolphinPosition
+                annotation.title = "🐬 Dolphin"
+                annotation.subtitle = "Look, Dolphins! 🌊"
+                
+                print("🐬 Adding dolphin at position: \(dolphinPosition.latitude), \(dolphinPosition.longitude)")
+                mapView.addAnnotation(annotation)
+            }
         }
         
-        // Debug: Finale Überprüfung
-        let finalAnnotations = mapView.annotations
-        print("Final annotations count: \(finalAnnotations.count)")
-        for (index, annotation) in finalAnnotations.enumerated() {
-            print("Annotation \(index): type=\(type(of: annotation)), position=\(annotation.coordinate)")
-        }
+        // Zusammenfassung am Ende
+        let orcaCount = mapView.annotations.filter { $0 is OrcaAnnotation }.count
+        let dolphinCount = mapView.annotations.filter { $0 is DolphinAnnotation }.count
+        print("🐋🐬 Found \(orcaCount) orcas and \(dolphinCount) dolphins")
     }
-} 
+}
