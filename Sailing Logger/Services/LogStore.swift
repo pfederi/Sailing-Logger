@@ -10,13 +10,17 @@ class LogStore: ObservableObject {
     
     private let voyageStore: VoyageStore
     
+    @Published private(set) var currentVoyage: Voyage?
+    
     init(voyageStore: VoyageStore) {
         self.voyageStore = voyageStore
+        self.currentVoyage = voyageStore.activeVoyage
         loadEntries()
         
         // Observer für Änderungen am activeVoyage
         Task { @MainActor in
-            for await _ in voyageStore.$activeVoyage.values {
+            for await voyage in voyageStore.$activeVoyage.values {
+                self.currentVoyage = voyage
                 loadEntries()
             }
         }
@@ -31,8 +35,10 @@ class LogStore: ObservableObject {
         return []
     }
     
-    var currentVoyage: Voyage? {
-        voyageStore.activeVoyage
+    func updateCurrentVoyage(_ voyage: Voyage) {
+        objectWillChange.send()
+        currentVoyage = voyage
+        loadEntries()
     }
     
     func addEntry(_ entry: LogEntry) {
@@ -153,6 +159,10 @@ class LogStore: ObservableObject {
     func saveLocationDescription(for entry: LogEntry, description: String) {
         entry.locationDescription = description
         save()
+    }
+    
+    func reloadEntries() {
+        loadEntries()
     }
 }
 

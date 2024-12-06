@@ -82,6 +82,7 @@ struct CustomButtonStyle: ButtonStyle {
 struct NewVoyageView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var voyageStore: VoyageStore
+    @ObservedObject var logStore: LogStore
     
     @State private var voyageName = ""
     @State private var startDate = Date()
@@ -95,6 +96,9 @@ struct NewVoyageView: View {
     @State private var alertMessage = ""
     @State private var crewToEditIndex: Int?
     @FocusState private var focusedField: Field?
+    @State private var showingFilePicker = false
+    @State private var showingImportSuccessAlert = false
+    @State private var importSuccessMessage = ""
     
     private enum Field: Int {
         case voyageName, boatType, boatName
@@ -157,6 +161,25 @@ struct NewVoyageView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
+                
+                Section {
+                    Button(action: {
+                        showingFilePicker = true
+                    }) {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Import Voyage Data")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(MaritimeColors.navy)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(Color.white)
+                    .padding(.horizontal, -20)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
             .navigationTitle("New Voyage")
             .navigationBarTitleDisplayMode(.inline)
@@ -184,10 +207,20 @@ struct NewVoyageView: View {
                     existingSkipper: hasSkipper
                 )
             }
+            .sheet(isPresented: $showingFilePicker) {
+                DocumentPicker { data in
+                    handleImportedData(data)
+                }
+            }
             .alert("Error", isPresented: $showAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(alertMessage)
+            }
+            .alert("Import Successful", isPresented: $showingImportSuccessAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(importSuccessMessage)
             }
         }
     }
@@ -223,6 +256,45 @@ struct NewVoyageView: View {
     private func moveToPreviousField() {
         guard let currentField = focusedField else { return }
         focusedField = Field(rawValue: currentField.rawValue - 1)
+    }
+    
+    private func handleImportedData(_ data: Data) {
+        do {
+            print("Starting to decode imported data...")
+            let decoder = JSONDecoder()
+            let importedVoyage = try decoder.decode(Voyage.self, from: data)
+            
+            // Aktualisiere die Formularfelder mit den importierten Daten
+            voyageName = importedVoyage.name
+            startDate = importedVoyage.startDate
+            boatType = importedVoyage.boatType
+            boatName = importedVoyage.boatName
+            crew = importedVoyage.crew
+            
+            // Füge zuerst die Voyage hinzu
+            voyageStore.addVoyage(importedVoyage)
+            
+            // Dann importiere die LogEntries
+            if !importedVoyage.logEntries.isEmpty {
+                logStore.importEntries(importedVoyage.logEntries)
+                logStore.reloadEntries()
+            }
+            
+            importSuccessMessage = "Successfully imported voyage with \(importedVoyage.logEntries.count) log entries."
+            showingImportSuccessAlert = true
+            
+            print("✅ Import successful with \(importedVoyage.logEntries.count) entries")
+            
+            // Optional: Automatisch schließen nach erfolgreichem Import
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                dismiss()
+            }
+            
+        } catch {
+            print("❌ Error decoding voyage data: \(error)")
+            alertMessage = "Error importing data: \(error.localizedDescription)"
+            showAlert = true
+        }
     }
 }
 
@@ -297,6 +369,6 @@ struct AddCrewSheet: View {
 
 #Preview {
     NavigationView {
-        NewVoyageView(voyageStore: VoyageStore())
+        NewVoyageView(voyageStore: VoyageStore(), logStore: LogStore(voyageStore: VoyageStore()))
     }
 } 

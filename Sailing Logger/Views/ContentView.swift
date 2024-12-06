@@ -180,7 +180,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingNewVoyage) {
             NavigationView {
-                NewVoyageView(voyageStore: voyageStore)
+                NewVoyageView(voyageStore: voyageStore, logStore: logStore)
                     .tint(MaritimeColors.navy)
             }
         }

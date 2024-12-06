@@ -64,11 +64,17 @@ extension View {
 struct DetailToolbarModifier: ViewModifier {
     let showEdit: () -> Void
     let showLog: () -> Void
+    @FocusState private var focusedField: Field?
+    
+    private enum Field: Hashable {
+        case field1  // Erweitere dies nach Bedarf
+    }
     
     func body(content: Content) -> some View {
         content
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                // Navigation Bar Items
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
                     HStack {
                         Button {
                             showEdit()
@@ -83,6 +89,27 @@ struct DetailToolbarModifier: ViewModifier {
                             Image(systemName: "doc.text")
                                 .foregroundColor(MaritimeColors.navy)
                         }
+                    }
+                }
+                
+                // Keyboard Toolbar Items
+                ToolbarItemGroup(placement: .keyboard) {
+                    Button(action: {
+                        // Previous field logic
+                    }) {
+                        Image(systemName: "chevron.up")
+                    }
+                    
+                    Button(action: {
+                        // Next field logic
+                    }) {
+                        Image(systemName: "chevron.down")
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Done") {
+                        focusedField = nil
                     }
                 }
             }
@@ -100,5 +127,30 @@ extension View {
             showEdit: showEdit,
             showLog: showLog
         ))
+    }
+}
+
+struct LogViewToolbarModifier: ViewModifier {
+    let dismiss: () -> Void
+    
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+    }
+}
+
+extension View {
+    func logViewToolbar(
+        dismiss: @escaping () -> Void
+    ) -> some View {
+        modifier(LogViewToolbarModifier(dismiss: dismiss))
     }
 } 
