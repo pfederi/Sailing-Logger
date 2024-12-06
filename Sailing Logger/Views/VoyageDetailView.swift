@@ -91,6 +91,18 @@ struct VoyageDetailView: View {
                         )
                     }
                     
+                    if let firstEntry = voyage.logEntries.min(by: { $0.timestamp < $1.timestamp }),
+                       let lastEntry = voyage.logEntries.max(by: { $0.timestamp < $1.timestamp }),
+                       let maxDistance = voyage.logEntries.map({ $0.distance }).max() {
+                        let duration = lastEntry.timestamp.timeIntervalSince(firstEntry.timestamp)
+                        let averageSpeed = (maxDistance * 3600) / duration  // nm/h = knots
+                        VoyageDetailRow(
+                            title: "Average Speed",
+                            value: String(format: "%.1f kts", averageSpeed),
+                            icon: "speedometer"
+                        )
+                    }
+                    
                     if let maxSpeed = voyage.logEntries.map({ $0.speed }).max() {
                         VoyageDetailRow(
                             title: "Max Speed",

@@ -91,23 +91,43 @@ private struct VoyageArchiveRow: View {
                     Text(lastEntry?.timestamp.formatted(date: .abbreviated, time: .omitted) ?? "ongoing")
                 }
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.primary)
                 
                 // Additional Info
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(voyage.boatName) (\(voyage.boatType))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
+                    HStack {
+                        Text("Boat:")
+                            .fontWeight(.semibold)
+                        Text("\(voyage.boatName) (\(voyage.boatType))")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                
                     if !voyage.crew.isEmpty {
-                        Text("Crew: \(voyage.crew.map { $0.name }.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Crew:")
+                                .fontWeight(.semibold)
+                            Text(voyage.crew.map { $0.name }.joined(separator: ", "))
+                                .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .font(.caption)
+                        .foregroundColor(.primary)
                     }
                     
-                    Text("\(voyage.logEntries.count) Log Entries")
+                    if let totalDistance = voyage.logEntries.map({ $0.distance }).max() {
+                        HStack {
+                            Text("Distance:")
+                                .fontWeight(.semibold)
+                            Text(String(format: "%.1f nm", totalDistance))
+                        }
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
+                    }
+                    
+                    Text("\(voyage.logEntries.count) Log \(voyage.logEntries.count == 1 ? "Entry" : "Entries")")
+                        .font(.caption)
+                        .foregroundColor(.primary)
                 }
             }
             .padding(.vertical, 8)

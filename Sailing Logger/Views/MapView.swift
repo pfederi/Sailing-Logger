@@ -243,19 +243,30 @@ struct MapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            let identifier = "Marker"
-            
+            let identifier = "Location"
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            
             if annotationView == nil {
-                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                annotationView?.canShowCallout = false
+                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
             }
             
-            if let markerView = annotationView as? MKMarkerAnnotationView {
-                markerView.glyphText = "⛵️"
-                markerView.markerTintColor = .clear
-                markerView.glyphTintColor = .black
+            // Verwende das eigene SVG-Icon mit doppelter Größe und coral Farbe
+            if let originalImage = UIImage(named: "route-marker") {
+                let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                
+                if let context = UIGraphicsGetCurrentContext() {
+                    context.scaleBy(x: 2.0, y: 2.0)
+                    originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                }
+                
+                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
             }
+            
+            // Stelle sicher, dass der Ankerpunkt des Icons genau auf der Koordinate liegt
+            annotationView?.centerOffset = CGPoint(x: 0, y: 0)
             
             return annotationView
         }

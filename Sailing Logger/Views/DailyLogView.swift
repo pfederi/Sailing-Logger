@@ -559,7 +559,7 @@ struct RouteMapView: UIViewRepresentable {
         // Konfiguriere Buttons
         for button in [zoomInButton, zoomOutButton] {
             button.backgroundColor = .white
-            button.tintColor = .systemBlue
+            button.tintColor = MaritimeColors.navyUI
             button.layer.cornerRadius = 20
             button.translatesAutoresizingMaskIntoConstraints = false
             mapView.addSubview(button)
@@ -623,19 +623,29 @@ struct RouteMapView: UIViewRepresentable {
             guard let routeAnnotation = annotation as? RoutePointAnnotation else { return nil }
             
             let identifier = "RoutePoint"
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
             
             if annotationView == nil {
-                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
                 annotationView?.canShowCallout = true
             }
             
-            // Customize the point appearance
-            annotationView?.markerTintColor = .systemBlue
-            annotationView?.glyphImage = UIImage(systemName: "circle.fill")
+            // Verwende das eigene SVG-Icon mit doppelter Größe und coral Farbe
+            if let originalImage = UIImage(named: "route-marker") {
+                let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                
+                if let context = UIGraphicsGetCurrentContext() {
+                    context.scaleBy(x: 2.0, y: 2.0)
+                    originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                }
+                
+                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+            }
             
-            // Deaktiviere Clustering
-            annotationView?.clusteringIdentifier = nil
+            // Stelle sicher, dass der Ankerpunkt des Icons genau auf der Koordinate liegt
+            annotationView?.centerOffset = CGPoint(x: 0, y: 0)
             
             // Add time label to callout
             let timeLabel = UILabel()
