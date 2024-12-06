@@ -34,6 +34,7 @@ struct VoyageArchiveView: View {
         }
         .navigationTitle("Voyage Archive")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
         .confirmationDialog(
             "Delete Voyage",
             isPresented: $showingDeleteConfirmation,
@@ -176,7 +177,7 @@ private struct ArchivedLogEntryRow: View {
                 HStack {
                     Image(systemName: entry.engineState == .on ? "engine.combustion" : "sailboat")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(MaritimeColors.navy)
                         .frame(width: 32)
                     
                     VStack(alignment: .leading) {
@@ -205,7 +206,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.distance > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.triangle.swap")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.1f nm", entry.distance))
                             }
                         }
@@ -213,7 +214,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.magneticCourse > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.0f°", entry.magneticCourse))
                             }
                         }
@@ -221,7 +222,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.courseOverGround > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.0f°", entry.courseOverGround))
                             }
                         }
@@ -229,7 +230,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.speed > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "speedometer")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.1f kts", entry.speed))
                             }
                         }

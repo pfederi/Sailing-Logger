@@ -10,7 +10,7 @@ struct VoyageDetailRow: View {
             HStack {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(MaritimeColors.navy)
                         .frame(width: 24)
                 }
                 VStack(alignment: .leading) {

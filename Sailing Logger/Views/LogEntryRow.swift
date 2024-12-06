@@ -10,12 +10,12 @@ struct LogEntryRow: View {
             if entry.engineState == .on {
                 Image(systemName: "engine.combustion")
                     .font(.system(size: 20))
-                    .foregroundColor(.blue)
+                    .foregroundColor(MaritimeColors.navy)
                     .frame(width: 32)
             } else {
                 Image(systemName: "sailboat")
                     .font(.system(size: 20))
-                    .foregroundColor(.blue)
+                    .foregroundColor(MaritimeColors.navy)
                     .frame(width: 32)
             }
             
@@ -43,7 +43,7 @@ struct LogEntryRow: View {
                         if entry.distance > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.triangle.swap")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.1f nm", entry.distance))
                             }
                         }
@@ -51,7 +51,7 @@ struct LogEntryRow: View {
                         if entry.magneticCourse > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.0f°", entry.magneticCourse))
                             }
                         }
@@ -59,7 +59,7 @@ struct LogEntryRow: View {
                         if entry.courseOverGround > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.0f°", entry.courseOverGround))
                             }
                         }
@@ -67,7 +67,7 @@ struct LogEntryRow: View {
                         if entry.speed > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "speedometer")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(MaritimeColors.navy)
                                 Text(String(format: "%.1f kts", entry.speed))
                             }
                         }
@@ -80,13 +80,13 @@ struct LogEntryRow: View {
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.up.left.circle")
-                                .foregroundColor(.blue)
+                                .foregroundColor(MaritimeColors.navy)
                             Text(entry.wind.direction.rawValue)
                         }
                         
                         HStack(spacing: 4) {
                             Image(systemName: "wind")
-                                .foregroundColor(.blue)
+                                .foregroundColor(MaritimeColors.navy)
                             Text(String(format: "%.1f kts", entry.wind.speedKnots))
                         }
                     }

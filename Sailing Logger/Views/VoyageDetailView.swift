@@ -9,6 +9,7 @@ struct VoyageDetailView: View {
     @State private var showingEditSheet = false
     @State private var showingVoyageLog = false
     @Environment(\.dismiss) var dismiss
+    @State private var showingEndVoyageAlert = false
     
     var body: some View {
         List {
@@ -22,8 +23,25 @@ struct VoyageDetailView: View {
                 }
             } header: {
                 Label("Voyage Details", systemImage: "info.circle.fill")
+                    .fontWeight(.bold)
+                    .foregroundColor(MaritimeColors.navy)
             }
-            
+            // Crew Section
+            if !voyage.crew.isEmpty {
+                Section {
+                    ForEach(voyage.crew) { crewMember in
+                        VoyageDetailRow(
+                            title: crewMember.role.rawValue,
+                            value: crewMember.name,
+                            icon: "person.fill"
+                        )
+                    }
+                } header: {
+                    Label("Crew", systemImage: "person.3.fill")
+                    .fontWeight(.bold)
+                    .foregroundColor(MaritimeColors.navy)
+                }
+            }
             // Stats Section
             Section {
                 VoyageDetailRow(
@@ -53,20 +71,20 @@ struct VoyageDetailView: View {
                 )
             } header: {
                 Label("Statistics", systemImage: "chart.bar.fill")
+                .fontWeight(.bold)
+                    .foregroundColor(MaritimeColors.navy)
             }
-            
-            // Crew Section
-            if !voyage.crew.isEmpty {
+            // End Voyage Button Section
+            if voyage.endDate == nil {
                 Section {
-                    ForEach(voyage.crew) { crewMember in
-                        VoyageDetailRow(
-                            title: crewMember.role.rawValue,
-                            value: crewMember.name,
-                            icon: "person.fill"
-                        )
-                    }
-                } header: {
-                    Label("Crew", systemImage: "person.3.fill")
+                    SlideToEndButton(
+                        text: "Slide to End Voyage",
+                        action: {
+                            showingEndVoyageAlert = true
+                        }
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                 }
             }
         }
@@ -101,6 +119,14 @@ struct VoyageDetailView: View {
                 }
             }
         }
+        .alert("End Voyage?", isPresented: $showingEndVoyageAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("End Voyage", role: .destructive) {
+                endVoyage()
+            }
+        } message: {
+            Text("Once a voyage is ended, no further modifications to the logs will be possible. This action cannot be undone.")
+        }
     }
     
     private func calculateMotorMiles() -> Double {
@@ -116,5 +142,13 @@ struct VoyageDetailView: View {
         }
         
         return motorMiles
+    }
+    
+    private func endVoyage() {
+        let updatedVoyage = voyage
+        updatedVoyage.endDate = Date()
+        if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
+            voyageStore.voyages[index] = updatedVoyage
+        }
     }
 } 

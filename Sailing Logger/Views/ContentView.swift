@@ -52,7 +52,7 @@ struct ContentView: View {
                                 HStack(alignment: .center, spacing: 12) {
                                     Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
                                         .font(.system(size: 40))
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(MaritimeColors.navy)
                                     
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Voyage:")
@@ -60,6 +60,7 @@ struct ContentView: View {
                                             .foregroundColor(.secondary)
                                         Text(activeVoyage.name)
                                             .font(.headline)
+                                            .foregroundColor(MaritimeColors.navy)
                                     }
                                     
                                     Spacer()
@@ -68,10 +69,11 @@ struct ContentView: View {
                                             showingEndVoyageConfirmation = true
                                         } label: {
                                             Label("End Voyage", systemImage: "xmark.circle")
+                                                .foregroundColor(MaritimeColors.navy)
                                         }
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
-                                            .foregroundColor(.accentColor)
+                                            .foregroundColor(MaritimeColors.navy)
                                     }
                                 }
                             }
@@ -92,6 +94,7 @@ struct ContentView: View {
                         Spacer()
                         Text("Start a new Voyage to begin logging entries.")
                             .padding()
+                            .foregroundColor(MaritimeColors.navy)
                         Spacer()
                     }
                 }
@@ -111,13 +114,14 @@ struct ContentView: View {
                             HStack(spacing: 16) {
                                 Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
                                     .font(.title2)
+                                    .foregroundColor(.white)
                                 Text(shouldShowNewVoyage ? "New Voyage" : "Add Log Entry")
                                     .font(.title3)
+                                    .foregroundColor(.white)
                             }
-                            .foregroundColor(.white)
                             .padding(.horizontal, 24)
                             .frame(height: 56)
-                            .background(Color.blue)
+                            .background(MaritimeColors.navy)
                             .clipShape(Capsule())
                             .shadow(radius: 4)
                         }
@@ -126,8 +130,17 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("Sailing Logger")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Sailing Logger")
+                        .font(.headline)
+                        .foregroundColor(MaritimeColors.navy)
+                }
+            }
             .mainToolbar(
                 showSettings: { showingSettings = true },
                 hasArchivedVoyages: voyageStore.voyages.contains(where: { $0.endDate != nil }),

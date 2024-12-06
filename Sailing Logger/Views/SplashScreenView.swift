@@ -19,7 +19,7 @@ struct SplashScreenView: View {
                 VStack(spacing: 20) {
                     Image(systemName: "helm")
                         .font(.system(size: 80))
-                        .foregroundColor(.blue)
+                        .foregroundColor(MaritimeColors.navy)
                     
                     Text("Sailing Logger")
                         .font(.largeTitle)

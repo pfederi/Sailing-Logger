@@ -41,7 +41,7 @@ struct LogEntryDetailView: View {
                 HStack {
                     Image(systemName: "arrow.triangle.swap")
                         .frame(width: 24)
-                        .foregroundColor(.blue)
+                        .foregroundColor(MaritimeColors.navy)
                     Text("Distance")
                     Spacer()
                     Text(String(format: "%.1f nm", entry.distance))
@@ -54,7 +54,7 @@ struct LogEntryDetailView: View {
                     HStack {
                         Image(systemName: "helm")
                             .frame(width: 24)
-                            .foregroundColor(.blue)
+                            .foregroundColor(MaritimeColors.navy)
                         Text(maneuver.rawValue)
                     }
                 }
@@ -99,7 +99,7 @@ struct LogEntryDetailView: View {
                     HStack {
                         Image(systemName: "sailboat")
                             .frame(width: 24)
-                            .foregroundColor(.blue)
+                            .foregroundColor(MaritimeColors.navy)
                         VStack(alignment: .leading) {
                             if entry.sails.mainSail {
                                 Text("Main Sail")
@@ -125,7 +125,7 @@ struct LogEntryDetailView: View {
                 HStack {
                     Image(systemName: "engine.combustion")
                         .frame(width: 24)
-                        .foregroundColor(.blue)
+                        .foregroundColor(MaritimeColors.navy)
                     Text("Engine")
                     Spacer()
                     Text(entry.engineState == .on ? "Engine running" : "Engine off")
@@ -147,6 +147,7 @@ struct LogEntryDetailView: View {
                         showingEditSheet = true
                     } label: {
                         Label("Edit Entry", systemImage: "pencil")
+                            .foregroundColor(MaritimeColors.navy)
                     }
                     
                     Button(role: .destructive) {
@@ -156,6 +157,7 @@ struct LogEntryDetailView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
+                        .foregroundColor(MaritimeColors.navy)
                 }
             }
         }
@@ -222,7 +224,7 @@ struct DetailRow: View {
         HStack {
             Image(systemName: icon)
                 .frame(width: 24)
-                .foregroundColor(.blue)
+                .foregroundColor(MaritimeColors.navy)
             Text(title)
                 .frame(width: 100, alignment: .leading)
             Spacer()

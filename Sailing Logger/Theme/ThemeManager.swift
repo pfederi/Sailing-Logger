@@ -4,6 +4,7 @@ class ThemeManager: ObservableObject {
     @AppStorage("colorScheme") var storedColorScheme: String = "system"
     @AppStorage("openWeatherApiKey") var openWeatherApiKey: String = ""
     @AppStorage("useImperialUnits") var useImperialUnits: Bool = false
+    @Published var toolbarColor: Color = MaritimeColors.navy
     
     var colorScheme: ColorScheme? {
         switch storedColorScheme {

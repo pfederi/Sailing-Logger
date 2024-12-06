@@ -9,30 +9,35 @@ struct MainToolbarModifier: ViewModifier {
     let logStore: LogStore
     
     func body(content: Content) -> some View {
-        content.toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showSettings()
-                } label: {
-                    Image(systemName: "gear")
-                }
-            }
-            
-            ToolbarItem(placement: .navigationBarLeading) {
-                if hasArchivedVoyages {
-                    NavigationLink {
-                        VoyageArchiveView(
-                            voyageStore: voyageStore,
-                            locationManager: locationManager,
-                            tileManager: tileManager,
-                            logStore: logStore
-                        )
+        content
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSettings()
                     } label: {
-                        Text("Archive")
+                        Image(systemName: "gear")
+                            .foregroundColor(MaritimeColors.navy)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if hasArchivedVoyages {
+                        NavigationLink {
+                            VoyageArchiveView(
+                                voyageStore: voyageStore,
+                                locationManager: locationManager,
+                                tileManager: tileManager,
+                                logStore: logStore
+                            )
+                        } label: {
+                            Text("Archive")
+                                .foregroundColor(MaritimeColors.navy)
+                        }
                     }
                 }
             }
-        }
+            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
@@ -61,23 +66,28 @@ struct DetailToolbarModifier: ViewModifier {
     let showLog: () -> Void
     
     func body(content: Content) -> some View {
-        content.toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack {
-                    Button {
-                        showEdit()
-                    } label: {
-                        Text("Edit")
-                    }
-                    
-                    Button {
-                        showLog()
-                    } label: {
-                        Image(systemName: "doc.text")
+        content
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack {
+                        Button {
+                            showEdit()
+                        } label: {
+                            Text("Edit")
+                                .foregroundColor(MaritimeColors.navy)
+                        }
+                        
+                        Button {
+                            showLog()
+                        } label: {
+                            Image(systemName: "doc.text")
+                                .foregroundColor(MaritimeColors.navy)
+                        }
                     }
                 }
             }
-        }
+            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 

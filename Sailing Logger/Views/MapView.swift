@@ -274,7 +274,7 @@ struct MapView: UIViewRepresentable {
         // Konfiguriere Buttons
         for button in [zoomInButton, zoomOutButton] {
             button.backgroundColor = .white
-            button.tintColor = .systemBlue
+            button.tintColor = UIColor(MaritimeColors.navy)
             button.layer.cornerRadius = 20
             button.translatesAutoresizingMaskIntoConstraints = false
             mapView.addSubview(button)

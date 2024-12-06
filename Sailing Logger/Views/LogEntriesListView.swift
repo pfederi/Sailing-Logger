@@ -105,7 +105,7 @@ struct LogEntriesSection: View {
                 Spacer()
                 NavigationLink(destination: DailyLogViewContainer(entries: entries, date: date)) {
                     Image(systemName: "doc.text")
-                        .foregroundColor(.blue)
+                        .foregroundColor(MaritimeColors.navy)
                 }
             }
         }
