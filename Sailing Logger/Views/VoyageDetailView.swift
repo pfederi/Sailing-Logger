@@ -17,6 +17,8 @@ struct VoyageDetailView: View {
     @State private var exportData: Data?
     @State private var showingImportSuccessAlert = false
     @State private var importSuccessMessage = ""
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     init(voyage: Voyage, voyageStore: VoyageStore, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, logStore: LogStore) {
         self.voyage = voyage
@@ -204,6 +206,11 @@ struct VoyageDetailView: View {
                 }
                 .listRowInsets(EdgeInsets())
                 .buttonStyle(.plain)
+                .alert("Error", isPresented: $showAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text(alertMessage)
+                }
             }
 
             // End Voyage Button Section
@@ -222,9 +229,14 @@ struct VoyageDetailView: View {
                         .fontWeight(.bold)
                         .foregroundColor(MaritimeColors.navy)
                 } footer: {
-                    Text("Once a voyage is ended, it will be moved to the archive. Log entries of archived voyages cannot be modified anymore.")
+                    Text("Once a voyage is ended, it will be moved to the archive. Log entries of archived voyages cannot be modified anymore")
                         .foregroundColor(MaritimeColors.navy)
                         .padding(.top, 8)
+                }
+                .alert("Error", isPresented: $showAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text(alertMessage)
                 }
             }
         }
@@ -332,6 +344,8 @@ struct VoyageDetailView: View {
             
             // Prüfe ob es die gleiche Voyage ist
             guard importedVoyage.id == voyage.id else {
+                alertMessage = "The imported data belongs to a different voyage"
+                showAlert = true
                 print("❌ Imported voyage ID doesn't match")
                 return
             }
@@ -380,6 +394,8 @@ struct VoyageDetailView: View {
             
         } catch {
             print("❌ Error decoding voyage data: \(error)")
+            alertMessage = "Could not import data: \(error.localizedDescription)"
+            showAlert = true
         }
     }
     
