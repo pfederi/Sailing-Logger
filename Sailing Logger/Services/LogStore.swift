@@ -31,6 +31,10 @@ class LogStore: ObservableObject {
         return []
     }
     
+    var currentVoyage: Voyage? {
+        voyageStore.activeVoyage
+    }
+    
     func addEntry(_ entry: LogEntry) {
         if let activeVoyage = voyageStore.activeVoyage {
             entries.append(entry)

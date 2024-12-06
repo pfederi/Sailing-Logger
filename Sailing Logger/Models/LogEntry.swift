@@ -21,13 +21,13 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
     let maneuver: Maneuver?
     let notes: String?
     let sails: Sails
+    let voyage: Voyage?
     @Published var locationDescription: String?
     
     enum CodingKeys: String, CodingKey {
         case id, timestamp, coordinates, distance, magneticCourse, courseOverGround
         case barometer, temperature, visibility, cloudCover, wind, sailState, speed
-        case engineState, maneuver, notes, sails
-        case locationDescription
+        case engineState, maneuver, notes, sails, voyage, locationDescription
     }
     
     required init(
@@ -48,6 +48,7 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
         maneuver: Maneuver? = nil,
         notes: String? = nil,
         sails: Sails = Sails(),
+        voyage: Voyage? = nil,
         locationDescription: String? = nil
     ) {
         self.id = id
@@ -67,6 +68,7 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
         self.maneuver = maneuver
         self.notes = notes
         self.sails = sails
+        self.voyage = voyage
         self.locationDescription = locationDescription
     }
     
@@ -119,6 +121,7 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
         maneuver = try container.decodeIfPresent(Maneuver.self, forKey: .maneuver)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
         sails = try container.decodeIfPresent(Sails.self, forKey: .sails) ?? Sails()
+        voyage = try container.decodeIfPresent(Voyage.self, forKey: .voyage)
         locationDescription = try container.decodeIfPresent(String.self, forKey: .locationDescription)
     }
     
@@ -141,6 +144,7 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
         try container.encodeIfPresent(maneuver, forKey: .maneuver)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encode(sails, forKey: .sails)
+        try container.encodeIfPresent(voyage, forKey: .voyage)
         try container.encodeIfPresent(locationDescription, forKey: .locationDescription)
     }
     

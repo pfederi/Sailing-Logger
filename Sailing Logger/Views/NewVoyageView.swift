@@ -105,11 +105,7 @@ struct NewVoyageView: View {
     }
     
     private var formIsValid: Bool {
-        !voyageName.isEmpty && 
-        !boatType.isEmpty && 
-        !boatName.isEmpty && 
-        hasSkipper &&
-        !crew.isEmpty
+        !voyageName.isEmpty
     }
     
     var body: some View {
@@ -169,14 +165,6 @@ struct NewVoyageView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        createVoyage()
-                    }
-                    .fontWeight(.semibold)
-                    .disabled(voyageName.isEmpty)
                 }
                 
                 ToolbarItemGroup(placement: .keyboard) {

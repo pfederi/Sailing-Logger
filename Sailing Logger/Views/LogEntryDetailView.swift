@@ -29,7 +29,8 @@ struct LogEntryDetailView: View {
                 MapView(
                     locationManager: locationManager,
                     tileManager: tileManager,
-                    coordinates: entry.coordinates
+                    coordinates: entry.coordinates,
+                    crew: entry.voyage?.crew ?? []
                 )
                 .frame(height: 270)
                 .listRowInsets(EdgeInsets())

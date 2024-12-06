@@ -6,24 +6,27 @@ struct CrewMemberRow: View {
     let onDelete: () -> Void
     
     var body: some View {
-        HStack {
-            if member.role == .crew {
-                Image(systemName: "line.3.horizontal")
-                    .foregroundColor(.gray)
-            } else if member.role == .skipper {
-                Image(systemName: "sailboat.circle.fill")
-                    .foregroundColor(MaritimeColors.navy)
-                    .font(.system(size: 24))
-            } else if member.role == .secondSkipper {
-                Image(systemName: "sailboat.circle")
-                    .foregroundColor(MaritimeColors.navy)
-                    .font(.system(size: 24))
-            }
-            VStack(alignment: .leading) {
-                Text(member.name)
-                Text(member.role.rawValue)
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+        Button(action: onEdit) {
+            HStack {
+                if member.role == .crew {
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundColor(.gray)
+                } else if member.role == .skipper {
+                    Image(systemName: "sailboat.circle.fill")
+                        .foregroundColor(MaritimeColors.navy)
+                        .font(.system(size: 24))
+                } else if member.role == .secondSkipper {
+                    Image(systemName: "sailboat.circle")
+                        .foregroundColor(MaritimeColors.navy)
+                        .font(.system(size: 24))
+                }
+                VStack(alignment: .leading) {
+                    Text(member.name)
+                    Text(member.role.rawValue)
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                Spacer()
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -33,13 +36,6 @@ struct CrewMemberRow: View {
                 Label("Delete", systemImage: "trash")
             }
             .tint(.red)
-            
-            Button {
-                onEdit()
-            } label: {
-                Label("Edit", systemImage: "pencil")
-            }
-            .tint(MaritimeColors.navy)
         }
     }
 }
@@ -48,6 +44,7 @@ struct CrewSection: View {
     @Binding var crew: [CrewMember]
     @Binding var showingAddCrew: Bool
     @Binding var crewToEditIndex: Int?
+    @Environment(\.editMode) private var editMode
     let hasSkipper: Bool
     
     var body: some View {
@@ -65,10 +62,8 @@ struct CrewSection: View {
                     CrewMemberRow(
                         member: member,
                         onEdit: {
-                            if let index = crew.firstIndex(where: { $0.id == member.id }) {
-                                crewToEditIndex = index
-                                showingAddCrew = true
-                            }
+                            crewToEditIndex = crew.firstIndex(where: { $0.id == member.id })
+                            showingAddCrew = true
                         },
                         onDelete: {
                             if let index = crew.firstIndex(where: { $0.id == member.id }) {
@@ -115,4 +110,4 @@ struct CrewSection: View {
             }
         }
     }
-} 
+}

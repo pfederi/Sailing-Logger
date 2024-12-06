@@ -815,7 +815,8 @@ struct EditLogEntryView: View {
             MapView(
                 locationManager: locationManager,
                 tileManager: tileManager,
-                coordinates: coordinates
+                coordinates: coordinates,
+                crew: entry.voyage?.crew ?? []
             )
             .frame(height: 270)
             .listRowInsets(EdgeInsets())

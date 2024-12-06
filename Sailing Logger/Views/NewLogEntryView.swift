@@ -10,6 +10,10 @@ struct NewLogEntryView: View {
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var themeManager: ThemeManager
     
+    private var voyage: Voyage? {
+        logStore.currentVoyage
+    }
+    
     @State private var timestamp = Date()
     @State private var coordinates: Coordinates
     
@@ -454,14 +458,19 @@ struct NewLogEntryView: View {
     }
     
     private var mapSection: some View {
-        MapView(
-            locationManager: locationManager,
-            tileManager: tileManager,
-            coordinates: coordinates
-        )
-        .frame(height: 270)
-        .listRowInsets(EdgeInsets())
-        .listRowBackground(Color.clear)
+        let store = logStore as LogStore
+        return Section {
+            MapView(
+                locationManager: locationManager,
+                tileManager: tileManager,
+                coordinates: coordinates,
+                crew: store.currentVoyage?.crew ?? []
+            )
+            .frame(height: 270)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+        }
+        .listSectionSpacing(.compact)
     }
     
     var body: some View {

@@ -2,10 +2,15 @@ import SwiftUI
 import MapKit
 import Network
 
+class PositionAnnotation: MKPointAnnotation {
+    // Custom Klasse für den Positionsmarker
+}
+
 struct MapView: UIViewRepresentable {
     let locationManager: LocationManager
     let tileManager: OpenSeaMapTileManager
     var coordinates: Coordinates
+    var crew: [CrewMember]
     @State private var isOnline: Bool = false
     
     func makeUIView(context: Context) -> MKMapView {
@@ -27,6 +32,9 @@ struct MapView: UIViewRepresentable {
         
         // Prüfe Netzwerkverbindung und lade entsprechende Karten
         checkConnectivityAndLoadMaps(mapView)
+        
+        // Easter Egg Check
+        EasterEggService.addOrcasIfNaomiPresent(mapView: mapView, crew: crew)
         
         return mapView
     }
@@ -54,15 +62,13 @@ struct MapView: UIViewRepresentable {
     }
     
     private func setupInitialRegion(_ mapView: MKMapView) {
-        let currentLocation = locationManager.currentLocation ?? Coordinates(latitude: 0, longitude: 0)
-        
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = currentLocation.toCLLocationCoordinate2D()
+        let annotation = PositionAnnotation()
+        annotation.coordinate = coordinates.toCLLocationCoordinate2D()
         mapView.addAnnotation(annotation)
         
         let span = 360.0 / pow(2.0, Double(12))
         let region = MKCoordinateRegion(
-            center: currentLocation.toCLLocationCoordinate2D(),
+            center: coordinates.toCLLocationCoordinate2D(),
             span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
         )
         mapView.setRegion(region, animated: false)
@@ -155,7 +161,7 @@ struct MapView: UIViewRepresentable {
         }
         
         // Update annotation position
-        if let annotation = mapView.annotations.first as? MKPointAnnotation {
+        if let annotation = mapView.annotations.first(where: { $0 is PositionAnnotation }) as? PositionAnnotation {
             annotation.coordinate = CLLocationCoordinate2D(
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude
@@ -243,32 +249,44 @@ struct MapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            let identifier = "Location"
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            
-            if annotationView == nil {
-                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                annotationView?.canShowCallout = true
-            }
-            
-            // Verwende das eigene SVG-Icon mit doppelter Größe und coral Farbe
-            if let originalImage = UIImage(named: "route-marker") {
-                let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
-                UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+            if annotation is OrcaAnnotation {
+                let identifier = "Orca"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
                 
-                if let context = UIGraphicsGetCurrentContext() {
-                    context.scaleBy(x: 2.0, y: 2.0)
-                    originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
                 }
                 
-                annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
+                // Verwende das Orca-PNG aus den Assets
+                annotationView?.image = UIImage(named: "orca-marker")
+                return annotationView
+            } else if annotation is PositionAnnotation {
+                let identifier = "Location"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+                
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                }
+                
+                if let originalImage = UIImage(named: "route-marker") {
+                    let size = CGSize(width: originalImage.size.width * 2, height: originalImage.size.height * 2)
+                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                    
+                    if let context = UIGraphicsGetCurrentContext() {
+                        context.scaleBy(x: 2.0, y: 2.0)
+                        originalImage.withTintColor(MaritimeColors.coralUI).draw(in: CGRect(origin: .zero, size: originalImage.size))
+                    }
+                    
+                    annotationView?.image = UIGraphicsGetImageFromCurrentImageContext()
+                    UIGraphicsEndImageContext()
+                }
+                
+                annotationView?.centerOffset = CGPoint(x: 0, y: 0)
+                return annotationView
             }
-            
-            // Stelle sicher, dass der Ankerpunkt des Icons genau auf der Koordinate liegt
-            annotationView?.centerOffset = CGPoint(x: 0, y: 0)
-            
-            return annotationView
+            return nil
         }
     }
 
