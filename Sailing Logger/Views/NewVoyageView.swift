@@ -73,7 +73,7 @@ struct CustomButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(configuration.isPressed ? Color.blue.opacity(0.8) : (isEnabled ? Color.blue : Color.gray))
+            .background(configuration.isPressed ? MaritimeColors.navy.opacity(0.8) : (isEnabled ? MaritimeColors.navy : Color.gray))
             .foregroundColor(.white)
             .cornerRadius(10)
     }
@@ -93,6 +93,7 @@ struct NewVoyageView: View {
     @State private var newCrewRole = CrewRole.crew
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var crewToEditIndex: Int?
     @FocusState private var focusedField: Field?
     
     private enum Field: Int {
@@ -140,15 +141,43 @@ struct NewVoyageView: View {
                 Section(header: Text("Crew")) {
                     ForEach(crew) { member in
                         HStack {
-                            Text(member.name)
-                            Spacer()
-                            Text(member.role.rawValue)
-                                .foregroundColor(.secondary)
+                            VStack(alignment: .leading) {
+                                Text(member.name)
+                                Text(member.role.rawValue)
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
+                                    crew.remove(at: index)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(Color.red)
+                            
+                            Button {
+                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
+                                    crewToEditIndex = index
+                                    newCrewName = member.name
+                                    newCrewRole = member.role
+                                    showingAddCrew = true
+                                }
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(MaritimeColors.navy)
                         }
                     }
-                    .onDelete(perform: deleteCrew)
                     
-                    Button(action: { showingAddCrew = true }) {
+                    Button(action: { 
+                        crewToEditIndex = nil
+                        newCrewName = ""
+                        newCrewRole = hasSkipper ? .crew : .skipper
+                        showingAddCrew = true 
+                    }) {
                         Label("Add Crew Member", systemImage: "person.badge.plus")
                     }
                 }
@@ -177,6 +206,7 @@ struct NewVoyageView: View {
                 AddCrewSheet(
                     crew: $crew,
                     isPresented: $showingAddCrew,
+                    crewToEditIndex: $crewToEditIndex,
                     existingSkipper: hasSkipper
                 )
             }
@@ -225,16 +255,31 @@ struct NewVoyageView: View {
 struct AddCrewSheet: View {
     @Binding var crew: [CrewMember]
     @Binding var isPresented: Bool
+    @Binding var crewToEditIndex: Int?
     let existingSkipper: Bool
     
-    @State private var name = ""
+    @State private var name: String
     @State private var role: CrewRole
     
-    init(crew: Binding<[CrewMember]>, isPresented: Binding<Bool>, existingSkipper: Bool) {
+    init(crew: Binding<[CrewMember]>, 
+         isPresented: Binding<Bool>, 
+         crewToEditIndex: Binding<Int?>, 
+         existingSkipper: Bool) {
         self._crew = crew
         self._isPresented = isPresented
+        self._crewToEditIndex = crewToEditIndex
         self.existingSkipper = existingSkipper
-        self._role = State(initialValue: existingSkipper ? .crew : .skipper)
+        
+        // Initialisiere mit existierenden Werten wenn im Edit-Modus
+        if let editIndex = crewToEditIndex.wrappedValue,
+           editIndex < crew.wrappedValue.count {
+            let member = crew.wrappedValue[editIndex]
+            self._name = State(initialValue: member.name)
+            self._role = State(initialValue: member.role)
+        } else {
+            self._name = State(initialValue: "")
+            self._role = State(initialValue: existingSkipper ? .crew : .skipper)
+        }
     }
     
     var body: some View {
@@ -250,14 +295,19 @@ struct AddCrewSheet: View {
                     Text(CrewRole.crew.rawValue).tag(CrewRole.crew)
                 }
                 
-                Button("Add") {
+                Button(crewToEditIndex != nil ? "Save" : "Add") {
                     let crewMember = CrewMember(name: name, role: role)
-                    crew.append(crewMember)
+                    if let editIndex = crewToEditIndex {
+                        crew[editIndex] = crewMember
+                    } else {
+                        crew.append(crewMember)
+                    }
                     isPresented = false
                 }
                 .disabled(name.isEmpty)
+                .fontWeight(.semibold)
             }
-            .navigationTitle("Add Crew Member")
+            .navigationTitle(crewToEditIndex != nil ? "Edit Crew Member" : "Add Crew Member")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

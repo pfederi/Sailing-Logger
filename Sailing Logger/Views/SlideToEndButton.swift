@@ -7,56 +7,58 @@ struct SlideToEndButton: View {
     @State private var offset: CGFloat = 0
     @State private var width: CGFloat = 0
     
+    private let buttonHeight: CGFloat = 72
+    private let capsuleSize: CGFloat = 64
+    private let padding: CGFloat = 4
+    
     var body: some View {
         ZStack(alignment: .leading) {
             // Background
-            RoundedRectangle(cornerRadius: 30)
+            RoundedRectangle(cornerRadius: buttonHeight/2)
                 .fill(Color.white)
                 .overlay(
-                    HStack {
-                        Spacer()
-                        Text(text)
-                            .foregroundColor(.gray)
-                            .padding(.trailing, 50)
-                        Spacer()
-                    }
+                    Text(text)
+                        .foregroundColor(.gray)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: buttonHeight/2)
+                        .strokeBorder(Color.white, lineWidth: 2)
                 )
             
-            // Slider
-            HStack {
+            // Expanding Red Background
+            ZStack(alignment: .trailing) {
                 Capsule()
-                    .fill(Color.red)
-                    .frame(width: 50, height: 50)
+                    .fill(MaritimeColors.coral)
+                    .frame(width: offset + capsuleSize)
                     .padding(4)
-                    .offset(x: offset)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                let newOffset = max(0, min(value.translation.width, width - 58))
-                                offset = newOffset
-                            }
-                            .onEnded { value in
-                                if offset > width * 0.7 {
-                                    withAnimation {
-                                        action()
-                                        offset = 0
-                                    }
-                                } else {
-                                    withAnimation {
-                                        offset = 0
-                                    }
-                                }
-                            }
-                    )
-                    .overlay(
-                        Image(systemName: "flag.checkered.2.crossed")
-                            .foregroundColor(.white)
-                            .offset(x: offset)
-                    )
-                Spacer()
+                
+                Image(systemName: "flag.checkered.2.crossed")
+                    .foregroundColor(.white)
+                    .font(.system(size: 20))
+                    .frame(width: capsuleSize)
+                    .padding(4)
             }
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let newOffset = max(0, min(value.translation.width, width - capsuleSize - 8))
+                        offset = newOffset
+                    }
+                    .onEnded { value in
+                        if offset > width * 0.7 {
+                            withAnimation {
+                                action()
+                                offset = 0
+                            }
+                        } else {
+                            withAnimation {
+                                offset = 0
+                            }
+                        }
+                    }
+            )
         }
-        .frame(height: 58)
+        .frame(height: buttonHeight)
         .background(
             GeometryReader { geo in
                 Color.clear

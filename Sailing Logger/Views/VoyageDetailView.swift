@@ -74,6 +74,31 @@ struct VoyageDetailView: View {
                 .fontWeight(.bold)
                     .foregroundColor(MaritimeColors.navy)
             }
+
+            // Log Entries Section - nur für archivierte Voyages
+            if voyage.endDate != nil {
+                Section {
+                    ForEach(voyage.logEntries.sorted(by: { $0.timestamp > $1.timestamp })) { entry in
+                        NavigationLink {
+                            LogEntryDetailView(
+                                entry: entry,
+                                isArchived: true,
+                                voyageStore: voyageStore,
+                                locationManager: locationManager,
+                                tileManager: tileManager,
+                                logStore: logStore
+                            )
+                        } label: {
+                            LogEntryRow(entry: entry)
+                        }
+                    }
+                } header: {
+                    Label("Log Entries", systemImage: "list.bullet")
+                    .fontWeight(.bold)
+                        .foregroundColor(MaritimeColors.navy)
+                }
+            }
+
             // End Voyage Button Section
             if voyage.endDate == nil {
                 Section {
