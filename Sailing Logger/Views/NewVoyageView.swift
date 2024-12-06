@@ -116,71 +116,40 @@ struct NewVoyageView: View {
         NavigationView {
             Form {
                 Section(header: Text("Voyage Details")) {
-                    TextField("Voyage Name", text: $voyageName)
-                        .focused($focusedField, equals: .voyageName)
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                KeyboardToolbar(
-                                    previousAction: { moveToPreviousField() },
-                                    nextAction: { moveToNextField() },
-                                    isPreviousDisabled: focusedField == .voyageName,
-                                    isNextDisabled: focusedField == .boatName
-                                )
-                            }
-                        }
-                    DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                    HStack {
+                        Image(systemName: "tag")
+                            .foregroundColor(MaritimeColors.navy)
+                        TextField("Voyage Name", text: $voyageName)
+                            .focused($focusedField, equals: .voyageName)
+                    }
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(MaritimeColors.navy)
+                        DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                    }
                 }
                 
                 Section(header: Text("Boat Details")) {
-                    TextField("Boat Type", text: $boatType)
-                        .focused($focusedField, equals: .boatType)
-                    TextField("Boat Name", text: $boatName)
-                        .focused($focusedField, equals: .boatName)
+                    HStack {
+                        Image(systemName: "sailboat")
+                            .foregroundColor(MaritimeColors.navy)
+                        TextField("Boat Type", text: $boatType)
+                            .focused($focusedField, equals: .boatType)
+                    }
+                    HStack {
+                        Image(systemName: "pencil.and.scribble")
+                            .foregroundColor(MaritimeColors.navy)
+                        TextField("Boat Name", text: $boatName)
+                            .focused($focusedField, equals: .boatName)
+                    }
                 }
                 
-                Section(header: Text("Crew")) {
-                    ForEach(crew) { member in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(member.name)
-                                Text(member.role.rawValue)
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
-                                    crew.remove(at: index)
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            .tint(Color.red)
-                            
-                            Button {
-                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
-                                    crewToEditIndex = index
-                                    newCrewName = member.name
-                                    newCrewRole = member.role
-                                    showingAddCrew = true
-                                }
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(MaritimeColors.navy)
-                        }
-                    }
-                    
-                    Button(action: { 
-                        crewToEditIndex = nil
-                        newCrewName = ""
-                        newCrewRole = hasSkipper ? .crew : .skipper
-                        showingAddCrew = true 
-                    }) {
-                        Label("Add Crew Member", systemImage: "person.badge.plus")
-                    }
-                }
+                CrewSection(
+                    crew: $crew,
+                    showingAddCrew: $showingAddCrew,
+                    crewToEditIndex: $crewToEditIndex,
+                    hasSkipper: hasSkipper
+                )
                 
                 Section {
                     Button("Create Voyage") {
@@ -200,6 +169,23 @@ struct NewVoyageView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        createVoyage()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(voyageName.isEmpty)
+                }
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    KeyboardToolbar(
+                        previousAction: { moveToPreviousField() },
+                        nextAction: { moveToNextField() },
+                        isPreviousDisabled: focusedField == .voyageName,
+                        isNextDisabled: focusedField == .boatName
+                    )
                 }
             }
             .sheet(isPresented: $showingAddCrew) {
@@ -294,18 +280,6 @@ struct AddCrewSheet: View {
                         .disabled(crew.contains { $0.role == .secondSkipper })
                     Text(CrewRole.crew.rawValue).tag(CrewRole.crew)
                 }
-                
-                Button(crewToEditIndex != nil ? "Save" : "Add") {
-                    let crewMember = CrewMember(name: name, role: role)
-                    if let editIndex = crewToEditIndex {
-                        crew[editIndex] = crewMember
-                    } else {
-                        crew.append(crewMember)
-                    }
-                    isPresented = false
-                }
-                .disabled(name.isEmpty)
-                .fontWeight(.semibold)
             }
             .navigationTitle(crewToEditIndex != nil ? "Edit Crew Member" : "Add Crew Member")
             .navigationBarTitleDisplayMode(.inline)
@@ -314,6 +288,19 @@ struct AddCrewSheet: View {
                     Button("Cancel") {
                         isPresented = false
                     }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(crewToEditIndex != nil ? "Save" : "Add") {
+                        let crewMember = CrewMember(name: name, role: role)
+                        if let editIndex = crewToEditIndex {
+                            crew[editIndex] = crewMember
+                        } else {
+                            crew.append(crewMember)
+                        }
+                        isPresented = false
+                    }
+                    .disabled(name.isEmpty)
                 }
             }
         }

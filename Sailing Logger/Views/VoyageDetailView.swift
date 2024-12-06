@@ -11,12 +11,37 @@ struct VoyageDetailView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showingEndVoyageAlert = false
     
+    private func crewDetailRow(for crewMember: CrewMember) -> some View {
+        let icon = crewMember.role == .skipper ? "sailboat.circle.fill" :
+                  crewMember.role == .secondSkipper ? "sailboat.circle" :
+                  "person.fill"
+        
+        return VoyageDetailRow(
+            title: crewMember.role.rawValue,
+            value: crewMember.name,
+            icon: icon
+        )
+        .font(.system(size: crewMember.role == .skipper || crewMember.role == .secondSkipper ? 24 : 20))
+    }
+    
     var body: some View {
         List {
             // Voyage Details Section
             Section {
-                VoyageDetailRow(title: "Name", value: voyage.name, icon: "tag.fill")
-                VoyageDetailRow(title: "Boat", value: "\(voyage.boatName) (\(voyage.boatType))", icon: "sailboat.fill")
+                VoyageDetailRow(
+                    title: "Name", 
+                    value: voyage.name, 
+                    icon: "tag.fill"
+                )
+                if !voyage.boatName.isEmpty || !voyage.boatType.isEmpty {
+                    VoyageDetailRow(
+                        title: "Boat", 
+                        value: voyage.boatType.isEmpty || voyage.boatName.isEmpty ? 
+                               voyage.boatName + voyage.boatType :
+                               "\(voyage.boatName) (\(voyage.boatType))", 
+                        icon: "sailboat.fill"
+                    )
+                }
                 VoyageDetailRow(title: "Start Date", value: voyage.startDate.formatted(date: .long, time: .shortened), icon: "calendar")
                 if let endDate = voyage.endDate {
                     VoyageDetailRow(title: "End Date", value: endDate.formatted(date: .long, time: .shortened), icon: "calendar.badge.checkmark")
@@ -29,12 +54,16 @@ struct VoyageDetailView: View {
             // Crew Section
             if !voyage.crew.isEmpty {
                 Section {
-                    ForEach(voyage.crew) { crewMember in
-                        VoyageDetailRow(
-                            title: crewMember.role.rawValue,
-                            value: crewMember.name,
-                            icon: "person.fill"
-                        )
+                    let sortedCrew = voyage.crew.sorted { member1, member2 in
+                        if member1.role == .skipper { return true }
+                        if member2.role == .skipper { return false }
+                        if member1.role == .secondSkipper { return true }
+                        if member2.role == .secondSkipper { return false }
+                        return false
+                    }
+                    
+                    ForEach(sortedCrew) { crewMember in
+                        crewDetailRow(for: crewMember)
                     }
                 } header: {
                     Label("Crew", systemImage: "person.3.fill")
@@ -43,36 +72,51 @@ struct VoyageDetailView: View {
                 }
             }
             // Stats Section
-            Section {
-                VoyageDetailRow(
-                    title: "Total Distance",
-                    value: String(format: "%.1f nm", voyage.logEntries.map { $0.distance }.max() ?? 0),
-                    icon: "arrow.triangle.swap"
-                )
-                VoyageDetailRow(
-                    title: "Motor Miles",
-                    value: String(format: "%.1f nm", calculateMotorMiles()),
-                    icon: "engine.combustion"
-                )
-                VoyageDetailRow(
-                    title: "Max Speed",
-                    value: String(format: "%.1f kts", voyage.logEntries.map { $0.speed }.max() ?? 0),
-                    icon: "speedometer"
-                )
-                VoyageDetailRow(
-                    title: "Max Wind",
-                    value: String(format: "%.1f kts", voyage.logEntries.map { $0.wind.speedKnots }.max() ?? 0),
-                    icon: "wind"
-                )
-                VoyageDetailRow(
-                    title: "Log Entries",
-                    value: "\(voyage.logEntries.count)",
-                    icon: "list.bullet"
-                )
-            } header: {
-                Label("Statistics", systemImage: "chart.bar.fill")
-                .fontWeight(.bold)
-                    .foregroundColor(MaritimeColors.navy)
+            if !voyage.logEntries.isEmpty {
+                Section {
+                    if let maxDistance = voyage.logEntries.map({ $0.distance }).max() {
+                        VoyageDetailRow(
+                            title: "Total Distance",
+                            value: String(format: "%.1f nm", maxDistance),
+                            icon: "arrow.triangle.swap"
+                        )
+                    }
+                    
+                    let motorMiles = calculateMotorMiles()
+                    if motorMiles > 0 {
+                        VoyageDetailRow(
+                            title: "Motor Miles",
+                            value: String(format: "%.1f nm", motorMiles),
+                            icon: "engine.combustion"
+                        )
+                    }
+                    
+                    if let maxSpeed = voyage.logEntries.map({ $0.speed }).max() {
+                        VoyageDetailRow(
+                            title: "Max Speed",
+                            value: String(format: "%.1f kts", maxSpeed),
+                            icon: "speedometer"
+                        )
+                    }
+                    
+                    if let maxWind = voyage.logEntries.map({ $0.wind.speedKnots }).max() {
+                        VoyageDetailRow(
+                            title: "Max Wind",
+                            value: String(format: "%.1f kts", maxWind),
+                            icon: "wind"
+                        )
+                    }
+                    
+                    VoyageDetailRow(
+                        title: "Log Entries",
+                        value: "\(voyage.logEntries.count)",
+                        icon: "list.bullet"
+                    )
+                } header: {
+                    Label("Statistics", systemImage: "chart.bar.fill")
+                        .fontWeight(.bold)
+                        .foregroundColor(MaritimeColors.navy)
+                }
             }
 
             // Log Entries Section - nur für archivierte Voyages

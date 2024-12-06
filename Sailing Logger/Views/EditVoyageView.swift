@@ -25,6 +25,20 @@ struct EditVoyageView: View {
         crew.contains { $0.role == .skipper }
     }
     
+    private func saveChanges() {
+        let updatedVoyage = voyage
+        updatedVoyage.name = name
+        updatedVoyage.boatType = boatType
+        updatedVoyage.boatName = boatName
+        updatedVoyage.crew = crew
+        
+        if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
+            voyageStore.voyages[index] = updatedVoyage
+        }
+        
+        dismiss()
+    }
+    
     var body: some View {
         NavigationView {
             Form {
@@ -35,43 +49,12 @@ struct EditVoyageView: View {
                 }
                 
                 Section(header: Text("Crew")) {
-                    ForEach(crew) { member in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(member.name)
-                                Text(member.role.rawValue)
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
-                                    crew.remove(at: index)
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            .tint(.red)
-                            
-                            Button {
-                                if let index = crew.firstIndex(where: { $0.id == member.id }) {
-                                    crewToEditIndex = index
-                                    showingAddCrew = true
-                                }
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(MaritimeColors.navy)
-                        }
-                    }
-                    
-                    Button(action: { 
-                        crewToEditIndex = nil
-                        showingAddCrew = true 
-                    }) {
-                        Label("Add Crew Member", systemImage: "person.badge.plus")
-                    }
+                    CrewSection(
+                        crew: $crew,
+                        showingAddCrew: $showingAddCrew,
+                        crewToEditIndex: $crewToEditIndex,
+                        hasSkipper: hasSkipper
+                    )
                 }
             }
             .navigationTitle("Edit Voyage")
@@ -84,8 +67,7 @@ struct EditVoyageView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        voyageStore.updateVoyage(voyage, name: name, crew: crew, boatType: boatType, boatName: boatName)
-                        dismiss()
+                        saveChanges()
                     }
                 }
             }
