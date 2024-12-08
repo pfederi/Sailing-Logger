@@ -21,6 +21,7 @@ struct EditVoyageView: View {
     @State private var boatName: String
     @State private var editingCrew: EditingCrew? = nil
     @State private var showingAddCrew = false
+    @State private var crewToEditIndex: Int?
     
     init(voyageStore: VoyageStore, voyage: Voyage) {
         self.voyageStore = voyageStore
@@ -37,17 +38,17 @@ struct EditVoyageView: View {
     }
     
     private func saveChanges() {
-        let updatedVoyage = voyage
-        updatedVoyage.name = name
-        updatedVoyage.boatType = boatType
-        updatedVoyage.boatName = boatName
-        updatedVoyage.crew = crew
+        voyageStore.updateVoyage(
+            voyage,
+            name: name,
+            crew: crew,
+            boatType: boatType,
+            boatName: boatName
+        )
         
-        if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
-            voyageStore.voyages[index] = updatedVoyage
-        }
-        
-        dismiss()
+        // Schließe nur die Sheets, nicht die gesamte View
+        editingCrew = nil
+        showingAddCrew = false
     }
     
     var body: some View {
@@ -83,12 +84,13 @@ struct EditVoyageView: View {
                 }
             }
             .sheet(isPresented: $showingAddCrew) {
-                NavigationView {
-                    AddCrewMemberView(
-                        crew: $crew,
-                        hasSkipper: hasSkipper
-                    )
-                }
+                AddCrewSheet(
+                    crew: $crew,
+                    isPresented: $showingAddCrew,
+                    crewToEditIndex: $crewToEditIndex,
+                    existingSkipper: hasSkipper,
+                    onSave: saveChanges
+                )
             }
         }
     }
@@ -128,7 +130,7 @@ struct EditVoyageView: View {
     
     private var crewSection: some View {
         Section(header: Text("Crew")) {
-            // Zuerst die Skipper anzeigen
+            // Skipper und Second Skipper
             ForEach(crew.filter { $0.role == .skipper || $0.role == .secondSkipper }) { member in
                 CrewMemberRow(
                     member: member,
@@ -140,12 +142,14 @@ struct EditVoyageView: View {
                     onDelete: {
                         if let index = crew.firstIndex(where: { $0.id == member.id }) {
                             crew.remove(at: index)
+                            // Speichere Änderungen sofort
+                            saveChanges()
                         }
                     }
                 )
             }
             
-            // Dann die normalen Crew-Mitglieder mit Drag & Drop
+            // Normale Crew-Mitglieder
             let crewMembers = crew.filter { $0.role == .crew }
             ForEach(crewMembers) { member in
                 CrewMemberRow(
@@ -158,6 +162,8 @@ struct EditVoyageView: View {
                     onDelete: {
                         if let index = crew.firstIndex(where: { $0.id == member.id }) {
                             crew.remove(at: index)
+                            // Speichere Änderungen sofort
+                            saveChanges()
                         }
                     }
                 )
@@ -165,11 +171,11 @@ struct EditVoyageView: View {
             .onMove { from, to in
                 var updatedCrewMembers = crewMembers
                 updatedCrewMembers.move(fromOffsets: from, toOffset: to)
-                // Kombiniere Skipper und verschobene Crew-Mitglieder
                 let skippers = crew.filter { $0.role == .skipper || $0.role == .secondSkipper }
                 crew = skippers + updatedCrewMembers
+                // Speichere Änderungen nach dem Verschieben
+                saveChanges()
             }
-            .environment(\.editMode, .constant(.active))
             
             Button(action: { 
                 showingAddCrew = true 
@@ -189,6 +195,7 @@ struct EditVoyageView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
                     saveChanges()
+                    dismiss()  // Nur hier die View schließen
                 }
                 .fontWeight(.semibold)
             }
@@ -233,50 +240,4 @@ struct EditCrewMemberView: View {
         crew[index] = member
     }
 }
-
-struct AddCrewMemberView: View {
-    @Binding var crew: [CrewMember]
-    @Environment(\.dismiss) var dismiss
-    let hasSkipper: Bool
-    
-    @State private var name = ""
-    @State private var role: CrewRole
-    
-    init(crew: Binding<[CrewMember]>, hasSkipper: Bool) {
-        self._crew = crew
-        self.hasSkipper = hasSkipper
-        self._role = State(initialValue: hasSkipper ? .crew : .skipper)
-    }
-    
-    var body: some View {
-        Form {
-            TextField("Name", text: $name)
-            
-            Picker("Role", selection: $role) {
-                Text(CrewRole.skipper.rawValue).tag(CrewRole.skipper)
-                    .disabled(hasSkipper)
-                Text(CrewRole.secondSkipper.rawValue).tag(CrewRole.secondSkipper)
-                    .disabled(crew.contains { $0.role == .secondSkipper })
-                Text(CrewRole.crew.rawValue).tag(CrewRole.crew)
-            }
-        }
-        .navigationTitle("Add Crew Member")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Add") {
-                    let newMember = CrewMember(name: name, role: role)
-                    crew.append(newMember)
-                    dismiss()
-                }
-                .disabled(name.isEmpty)
-            }
-            
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
-        }
-    }
-} 
+ 

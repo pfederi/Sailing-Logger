@@ -204,7 +204,11 @@ struct NewVoyageView: View {
                     crew: $crew,
                     isPresented: $showingAddCrew,
                     crewToEditIndex: $crewToEditIndex,
-                    existingSkipper: hasSkipper
+                    existingSkipper: hasSkipper,
+                    onSave: {
+                        // In NewVoyageView müssen wir nichts speichern,
+                        // da die Crew erst beim Erstellen der Voyage gespeichert wird
+                    }
                 )
             }
             .sheet(isPresented: $showingFilePicker) {
@@ -303,6 +307,7 @@ struct AddCrewSheet: View {
     @Binding var isPresented: Bool
     @Binding var crewToEditIndex: Int?
     let existingSkipper: Bool
+    let onSave: () -> Void
     
     @State private var name: String
     @State private var role: CrewRole
@@ -310,11 +315,13 @@ struct AddCrewSheet: View {
     init(crew: Binding<[CrewMember]>, 
          isPresented: Binding<Bool>, 
          crewToEditIndex: Binding<Int?>, 
-         existingSkipper: Bool) {
+         existingSkipper: Bool,
+         onSave: @escaping () -> Void) {
         self._crew = crew
         self._isPresented = isPresented
         self._crewToEditIndex = crewToEditIndex
         self.existingSkipper = existingSkipper
+        self.onSave = onSave
         
         // Initialisiere mit existierenden Werten wenn im Edit-Modus
         if let editIndex = crewToEditIndex.wrappedValue,
@@ -358,6 +365,7 @@ struct AddCrewSheet: View {
                         } else {
                             crew.append(crewMember)
                         }
+                        onSave()
                         isPresented = false
                     }
                     .disabled(name.isEmpty)

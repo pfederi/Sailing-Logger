@@ -94,7 +94,14 @@ class VoyageStore: ObservableObject {
             voyages[index].crew = crew
             voyages[index].boatType = boatType
             voyages[index].boatName = boatName
+            
+            if voyages[index].id == activeVoyage?.id {
+                activeVoyage = voyages[index]
+            }
+            
             save()
+            
+            objectWillChange.send()
         }
     }
     
