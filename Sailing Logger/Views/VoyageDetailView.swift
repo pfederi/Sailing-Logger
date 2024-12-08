@@ -212,6 +212,7 @@ struct VoyageDetailView: View {
                     Label("Voyage Sync", systemImage: "arrow.triangle.2.circlepath")
                         .fontWeight(.bold)
                         .foregroundColor(MaritimeColors.navy)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
                 } footer: {
                     Text("Export your voyage data to share with crew members or import data from others to sync log entries between devices.")
                         .foregroundColor(MaritimeColors.navy)

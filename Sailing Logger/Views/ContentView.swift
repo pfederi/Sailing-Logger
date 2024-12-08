@@ -4,7 +4,7 @@ import CoreLocation
 
 private struct VoyageHeaderContent: View {
     let voyage: Voyage
-    let logStore: LogStore
+    @ObservedObject var logStore: LogStore
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -12,15 +12,11 @@ private struct VoyageHeaderContent: View {
                 Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
                     .font(.system(size: 32))
                     .foregroundColor(MaritimeColors.navy)
-                    .padding(.top, 4)
                     .alignmentGuide(.firstTextBaseline) { d in
-                        d[.bottom]
+                        d[.top]
                     }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Voyage:")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                     Text(voyage.name)
                         .font(.headline)
                         .foregroundColor(MaritimeColors.navy)
@@ -31,6 +27,11 @@ private struct VoyageHeaderContent: View {
                 }
                 
                 Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary.opacity(0.5))
+                    .font(.system(size: 14, weight: .semibold))
+                    .padding(.trailing, 8)
             }
         }
         .padding()

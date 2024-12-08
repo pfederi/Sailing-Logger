@@ -166,7 +166,10 @@ class LogStore: ObservableObject {
     }
     
     var totalDistance: Double {
-        entries.reduce(0) { $0 + $1.distance }
+    entries
+        .sorted { $0.timestamp > $1.timestamp }
+        .first?
+        .distance ?? 0
     }
 }
 
