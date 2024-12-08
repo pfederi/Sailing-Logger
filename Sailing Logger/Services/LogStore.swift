@@ -164,6 +164,10 @@ class LogStore: ObservableObject {
     func reloadEntries() {
         loadEntries()
     }
+    
+    var totalDistance: Double {
+        entries.reduce(0) { $0 + $1.distance }
+    }
 }
 
 // Neue Struktur für Import-Statistiken

@@ -2,6 +2,42 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
+private struct VoyageHeaderContent: View {
+    let voyage: Voyage
+    let logStore: LogStore
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
+                    .font(.system(size: 32))
+                    .foregroundColor(MaritimeColors.navy)
+                    .padding(.top, 4)
+                    .alignmentGuide(.firstTextBaseline) { d in
+                        d[.bottom]
+                    }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Voyage:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text(voyage.name)
+                        .font(.headline)
+                        .foregroundColor(MaritimeColors.navy)
+                    Text("\(voyage.boatName) (\(voyage.boatType))")
+                        .font(.subheadline)
+                    Text("Total Distance: \(String(format: "%.1f", logStore.totalDistance)) nm")
+                        .font(.subheadline)
+                }
+                
+                Spacer()
+            }
+        }
+        .padding()
+        .background(Color(UIColor.systemBackground).opacity(0.9))
+    }
+}
+
 struct ContentView: View {
     @StateObject private var voyageStore = VoyageStore()
     @StateObject private var logStore: LogStore
@@ -17,127 +53,139 @@ struct ContentView: View {
     @State private var showingVoyageDetail = false
     
     init() {
-        let voyageStore = VoyageStore()
-        _voyageStore = StateObject(wrappedValue: voyageStore)
-        _logStore = StateObject(wrappedValue: LogStore(voyageStore: voyageStore))
+        // Create voyageStore first
+        let tempVoyageStore = VoyageStore()
+        
+        // Initialize state objects separately
+        _voyageStore = StateObject(wrappedValue: tempVoyageStore)
+        _logStore = StateObject(wrappedValue: LogStore(voyageStore: tempVoyageStore))
     }
     
     private var shouldShowNewVoyage: Bool {
         voyageStore.voyages.isEmpty || !voyageStore.hasActiveVoyage
     }
     
+    private var backgroundView: some View {
+        Group {
+            if shouldShowNewVoyage {
+                if let _ = UIImage(named: "background-image") {
+                    Color.clear.overlay(
+                        Image("background-image")
+                            .resizable()
+                            .scaledToFill()
+                    )
+                    .ignoresSafeArea()
+                    .opacity(0.33)
+                } else {
+                    MaritimeColors.oceanBlue
+                        .ignoresSafeArea()
+                }
+            }
+        }
+    }
+    
+    private var voyageHeaderView: some View {
+        Group {
+            if let activeVoyage = voyageStore.activeVoyage {
+                NavigationLink(destination: VoyageDetailView(
+                    voyage: activeVoyage,
+                    voyageStore: voyageStore,
+                    locationManager: locationManager,
+                    tileManager: tileManager,
+                    logStore: logStore
+                )) {
+                    VoyageHeaderContent(voyage: activeVoyage, logStore: logStore)
+                }
+                
+                Rectangle()
+                    .fill(MaritimeColors.seafoam)
+                    .frame(height: 1)
+            }
+        }
+    }
+    
+    private var mainContentView: some View {
+        Group {
+            if voyageStore.hasActiveVoyage {
+                if logStore.entries.isEmpty {
+                    VStack {
+                        Spacer()
+                        Text("Add your first log entry to start tracking your voyage.")
+                            .padding()
+                            .foregroundColor(MaritimeColors.navy)
+                        Spacer()
+                    }
+                } else {
+                    LogEntriesListView(
+                        logStore: logStore,
+                        voyageStore: voyageStore,
+                        locationManager: locationManager,
+                        tileManager: tileManager
+                    )
+                    .background(Color(UIColor.systemGray6).opacity(0.5))
+                }
+            } else {
+                VStack {
+                    Spacer()
+                    Text("Start a new Voyage to begin logging entries.")
+                        .padding()
+                        .foregroundColor(MaritimeColors.navy)
+                    Spacer()
+                }
+            }
+        }
+    }
+    
+    private var floatingActionButton: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Button {
+                    if shouldShowNewVoyage {
+                        showingNewVoyage = true
+                    } else {
+                        showingNewEntry = true
+                    }
+                } label: {
+                    HStack(spacing: 16) {
+                        Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                        Text(shouldShowNewVoyage ? "New Voyage" : "Add Log Entry")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 24)
+                    .frame(height: 56)
+                    .background(MaritimeColors.navy)
+                    .clipShape(Capsule())
+                    .shadow(radius: 4)
+                }
+                .padding(.trailing, 24)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background - only show when no active voyage
-                if shouldShowNewVoyage {
-                    if let _ = UIImage(named: "background-image") {
-                        Color.clear.overlay(
-                            Image("background-image")
-                                .resizable()
-                                .scaledToFill()
-                        )
-                        .ignoresSafeArea()
-                        .opacity(0.33)
-                    } else {
-                        MaritimeColors.oceanBlue
-                            .ignoresSafeArea()
-                    }
-                }
+                backgroundView
                 
                 VStack(spacing: 0) {
-                    // Voyage Header
-                    if let activeVoyage = voyageStore.activeVoyage {
-                        NavigationLink(destination: VoyageDetailView(
-                            voyage: activeVoyage,
-                            voyageStore: voyageStore,
-                            locationManager: locationManager,
-                            tileManager: tileManager,
-                            logStore: logStore
-                        )) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(alignment: .center, spacing: 12) {
-                                    Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(MaritimeColors.navy)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Voyage:")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                        Text(activeVoyage.name)
-                                            .font(.headline)
-                                            .foregroundColor(MaritimeColors.navy)
-                                    }
-                                    
-                                    Spacer()
-                                }
-                            }
-                            .padding()
-                            .background(Color(UIColor.systemBackground).opacity(0.9))
-                        }
-                        
+                    voyageHeaderView
+                    
+                    if voyageStore.activeVoyage != nil {
                         Rectangle()
                             .fill(MaritimeColors.seafoam)
                             .frame(height: 1)
                     }
                     
-                    // LogEntriesListView
-                    if voyageStore.hasActiveVoyage {
-                        if logStore.entries.isEmpty {
-                            Spacer()
-                            Text("Add your first log entry to start tracking your voyage.")
-                                .padding()
-                                .foregroundColor(MaritimeColors.navy)
-                            Spacer()
-                        } else {
-                            LogEntriesListView(
-                                logStore: logStore,
-                                voyageStore: voyageStore,
-                                locationManager: locationManager,
-                                tileManager: tileManager
-                            )
-                            .background(Color(UIColor.systemGray6).opacity(0.5))
-                        }
-                    } else {
-                        Spacer()
-                        Text("Start a new Voyage to begin logging entries.")
-                            .padding()
-                            .foregroundColor(MaritimeColors.navy)
-                        Spacer()
-                    }
+                    mainContentView
                 }
                 
-                // Action Button
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Button {
-                            if shouldShowNewVoyage {
-                                showingNewVoyage = true
-                            } else {
-                                showingNewEntry = true
-                            }
-                        } label: {
-                            HStack(spacing: 16) {
-                                Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                Text(shouldShowNewVoyage ? "New Voyage" : "Add Log Entry")
-                                    .font(.title3)
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 24)
-                            .frame(height: 56)
-                            .background(MaritimeColors.navy)
-                            .clipShape(Capsule())
-                            .shadow(radius: 4)
-                        }
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 24)
-                    }
-                }
+                floatingActionButton
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
