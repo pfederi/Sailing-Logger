@@ -92,7 +92,7 @@ struct VoyageDetailView: View {
                 }
             }
             // Stats Section
-            if !currentVoyage.logEntries.isEmpty {
+            if currentVoyage.endDate != nil {
                 Section {
                     if let maxDistance = currentVoyage.logEntries.map({ $0.distance }).max() {
                         VoyageDetailRow(
