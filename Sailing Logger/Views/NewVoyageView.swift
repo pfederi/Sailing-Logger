@@ -264,9 +264,18 @@ struct NewVoyageView: View {
     
     private func handleImportedData(_ data: Data) {
         do {
-            print("Starting to decode imported data...")
+            print("📥 Starting to decode imported data...")
             let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601  // Wichtig: Gleiche Strategie wie beim Export
+            
+            // Debug: Zeige den importierten JSON-String
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📥 Imported JSON:")
+                print(jsonString)
+            }
+            
             let importedVoyage = try decoder.decode(Voyage.self, from: data)
+            print("📥 Successfully decoded voyage: \(importedVoyage.name)")
             
             // Aktualisiere die Formularfelder mit den importierten Daten
             voyageName = importedVoyage.name
@@ -277,17 +286,19 @@ struct NewVoyageView: View {
             
             // Füge zuerst die Voyage hinzu
             voyageStore.addVoyage(importedVoyage)
+            print("📥 Added voyage to store")
             
             // Dann importiere die LogEntries
             if !importedVoyage.logEntries.isEmpty {
                 logStore.importEntries(importedVoyage.logEntries)
                 logStore.reloadEntries()
+                print("📥 Imported \(importedVoyage.logEntries.count) log entries")
             }
             
             importSuccessMessage = "Successfully imported voyage with \(importedVoyage.logEntries.count) log entries."
             showingImportSuccessAlert = true
             
-            print("✅ Import successful with \(importedVoyage.logEntries.count) entries")
+            print("✅ Import successful")
             
             // Optional: Automatisch schließen nach erfolgreichem Import
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -296,7 +307,21 @@ struct NewVoyageView: View {
             
         } catch {
             print("❌ Error decoding voyage data: \(error)")
-            alertMessage = "Error importing data: \(error.localizedDescription)"
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .typeMismatch(let type, let context):
+                    print("Type mismatch: expected \(type), at path: \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    print("Value not found: \(type), at path: \(context.codingPath)")
+                case .keyNotFound(let key, let context):
+                    print("Key not found: \(key), at path: \(context.codingPath)")
+                case .dataCorrupted(let context):
+                    print("Data corrupted at path: \(context.codingPath)")
+                @unknown default:
+                    print("Unknown decoding error")
+                }
+            }
+            alertMessage = "Could not import data: \(error.localizedDescription)"
             showAlert = true
         }
     }

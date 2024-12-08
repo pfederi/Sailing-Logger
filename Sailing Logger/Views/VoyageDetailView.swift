@@ -19,6 +19,8 @@ struct VoyageDetailView: View {
     @State private var importSuccessMessage = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var exportURL: URL?
+    @State private var isPreparingExport = false
     
     init(voyage: Voyage, voyageStore: VoyageStore, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, logStore: LogStore) {
         self.voyage = voyage
@@ -183,25 +185,37 @@ struct VoyageDetailView: View {
                                 .foregroundColor(MaritimeColors.navy)
                                 .padding(.vertical, 8)
                         }
+                        .disabled(isPreparingExport)
                         
                         Divider()
                         
                         Button(action: { exportVoyageData() }) {
-                            Label("Export", systemImage: "square.and.arrow.up")
+                            if isPreparingExport {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("Preparing...")
+                                }
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(MaritimeColors.navy)
                                 .padding(.vertical, 8)
+                            } else {
+                                Label("Export", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                                    .foregroundColor(MaritimeColors.navy)
+                                    .padding(.vertical, 8)
+                            }
                         }
+                        .disabled(isPreparingExport)
                     }
                 } header: {
                     Label("Voyage Sync", systemImage: "arrow.triangle.2.circlepath")
                         .fontWeight(.bold)
                         .foregroundColor(MaritimeColors.navy)
-                        .padding(.horizontal, 16)
                 } footer: {
                     Text("Export your voyage data to share with crew members or import data from others to sync log entries between devices.")
                         .foregroundColor(MaritimeColors.navy)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal)
                         .padding(.top, 8)
                 }
                 .listRowInsets(EdgeInsets())
@@ -279,17 +293,10 @@ struct VoyageDetailView: View {
             }
         }
         .sheet(isPresented: $showingShareSheet) {
-            if let tempFileURL = exportData.flatMap({ data -> URL? in
-                let safeVoyageName = currentVoyage.name
-                    .replacingOccurrences(of: " ", with: "_")
-                    .components(separatedBy: CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-").inverted)
-                    .joined()
-                let url = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("\(safeVoyageName)_voyage_\(currentVoyage.id).json")
-                try? data.write(to: url)
-                return url
-            }) {
-                ShareSheet(items: [tempFileURL])
+            if let url = exportURL {
+                ActivityViewController(activityItems: [url])
+            } else {
+                Text("Error preparing export")
             }
         }
         .alert("Import Successful", isPresented: $showingImportSuccessAlert) {
@@ -340,18 +347,26 @@ struct VoyageDetailView: View {
         do {
             print("📥 Starting to decode imported data...")
             let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601  // Wichtig: Gleiche Strategie wie beim Export
+            
+            // Debug: Zeige den importierten JSON-String
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📥 Imported JSON:")
+                print(jsonString)
+            }
+            
             let importedVoyage = try decoder.decode(Voyage.self, from: data)
             
             // Prüfe ob es die gleiche Voyage ist
             guard importedVoyage.id == voyage.id else {
-                alertMessage = "The imported data belongs to a different voyage"
+                alertMessage = "The imported data belongs to a different voyage (ID mismatch)"
                 showAlert = true
-                print("❌ Imported voyage ID doesn't match")
+                print("❌ Imported voyage ID (\(importedVoyage.id)) doesn't match current voyage ID (\(voyage.id))")
                 return
             }
             
             print("📥 Found matching voyage with \(importedVoyage.logEntries.count) entries")
-            print("📥 Current voyage has \(voyage.logEntries.count) entries")
+            print("📥 Current voyage has \(currentVoyage.logEntries.count) entries")
             
             // Merge Logeinträge
             var updatedLogEntries = currentVoyage.logEntries
@@ -362,6 +377,7 @@ struct VoyageDetailView: View {
                 print("📥 Checking imported entry with ID: \(importedEntry.id)")
                 
                 if let existingIndex = updatedLogEntries.firstIndex(where: { $0.id == importedEntry.id }) {
+                    print("   Found existing entry")
                     if shouldUpdateEntry(existing: updatedLogEntries[existingIndex], imported: importedEntry) {
                         print("   ✅ Updating existing entry")
                         updatedLogEntries[existingIndex] = importedEntry
@@ -377,7 +393,12 @@ struct VoyageDetailView: View {
             // Update die Voyage im VoyageStore
             if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
                 if importedCount > 0 || updatedCount > 0 {
+                    print("📥 Updating voyage in store with \(updatedLogEntries.count) total entries")
                     voyageStore.voyages[index].logEntries = updatedLogEntries
+                    
+                    // Aktualisiere auch die currentVoyage
+                    currentVoyage = voyageStore.voyages[index]
+                    
                     voyageStore.save()
                     
                     // Aktualisiere auch den LogStore
@@ -394,6 +415,20 @@ struct VoyageDetailView: View {
             
         } catch {
             print("❌ Error decoding voyage data: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .typeMismatch(let type, let context):
+                    print("Type mismatch: expected \(type), at path: \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    print("Value not found: \(type), at path: \(context.codingPath)")
+                case .keyNotFound(let key, let context):
+                    print("Key not found: \(key), at path: \(context.codingPath)")
+                case .dataCorrupted(let context):
+                    print("Data corrupted at path: \(context.codingPath)")
+                @unknown default:
+                    print("Unknown decoding error")
+                }
+            }
             alertMessage = "Could not import data: \(error.localizedDescription)"
             showAlert = true
         }
@@ -431,34 +466,67 @@ struct VoyageDetailView: View {
     
     private func exportVoyageData() {
         do {
-            print("📤 Starting export for voyage: \(currentVoyage.name)")
+            isPreparingExport = true
+            print("\n=== Starting Export ===")
             
             let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.dateEncodingStrategy = .iso8601
+            
             let data = try encoder.encode(currentVoyage)
+            print("Debug - Data size: \(data.count) bytes")
             
-            // Erstelle einen sicheren Dateinamen aus dem Voyage-Namen
-            let safeVoyageName = currentVoyage.name
-                .replacingOccurrences(of: " ", with: "_") // Ersetze Leerzeichen mit Unterstrichen
-                .components(separatedBy: CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-").inverted)
-                .joined() // Entferne alle nicht erlaubten Zeichen
+            // Erstelle temporäre Datei im Hintergrund
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let tempFileURL = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("voyage_export_\(UUID().uuidString).json")
+                    
+                    try data.write(to: tempFileURL)
+                    print("Debug - File written to: \(tempFileURL.path)")
+                    
+                    // Überprüfe, ob die Datei existiert und lesbar ist
+                    if FileManager.default.fileExists(atPath: tempFileURL.path),
+                       let _ = try? Data(contentsOf: tempFileURL) {
+                        DispatchQueue.main.async {
+                            self.exportURL = tempFileURL
+                            self.isPreparingExport = false
+                            self.showingShareSheet = true
+                            print("Debug - File verified and ready for sharing")
+                        }
+                    } else {
+                        throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "File verification failed"])
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        print("❌ Error writing file: \(error)")
+                        self.alertMessage = "Export failed: \(error.localizedDescription)"
+                        self.showAlert = true
+                        self.isPreparingExport = false
+                    }
+                }
+            }
             
-            print("📤 Safe voyage name: \(safeVoyageName)")
-            
-            // Erstelle eine temporäre Datei mit dem Voyage-Namen
-            let tempFileURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(safeVoyageName)_voyage_\(currentVoyage.id).json")
-            
-            print("📤 Saving to: \(tempFileURL.path)")
-            
-            try data.write(to: tempFileURL)
-            exportData = data
-            
-            // Zeige Share Sheet
-            showingShareSheet = true
-            print("📤 Export prepared successfully")
         } catch {
-            print("❌ Error preparing voyage data for export: \(error)")
+            print("❌ Error encoding data: \(error)")
+            alertMessage = "Export failed: \(error.localizedDescription)"
+            showAlert = true
+            isPreparingExport = false
         }
     }
+}
+
+// Separate ActivityViewController für das Sharing
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 } 

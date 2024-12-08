@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 
 class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable {
     let id: UUID
-    let timestamp: Date
+    var timestamp: Date
     let coordinates: Coordinates
     let distance: Double
     let magneticCourse: Double
@@ -75,20 +75,15 @@ class LogEntry: Identifiable, ObservableObject, Codable, Hashable, Transferable 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // UUID kann als String kommen
-        if let idString = try container.decodeIfPresent(String.self, forKey: .id) {
-            id = UUID(uuidString: idString) ?? UUID()
-        } else {
-            id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        }
+        id = try container.decode(UUID.self, forKey: .id)
         
-        // Timestamp kann als Double oder ISO8601 String kommen
-        if let timeDouble = try container.decodeIfPresent(Double.self, forKey: .timestamp) {
-            timestamp = Date(timeIntervalSinceReferenceDate: timeDouble)
-        } else if let timeString = try container.decodeIfPresent(String.self, forKey: .timestamp) {
-            timestamp = ISO8601DateFormatter().date(from: timeString) ?? Date()
+        // Versuche zuerst als Date zu decodieren
+        if let date = try? container.decode(Date.self, forKey: .timestamp) {
+            timestamp = date
         } else {
-            timestamp = Date()
+            // Fallback: Versuche als Double (Unix timestamp) zu decodieren
+            let timeInterval = try container.decode(Double.self, forKey: .timestamp)
+            timestamp = Date(timeIntervalSince1970: timeInterval)
         }
         
         coordinates = try container.decodeIfPresent(Coordinates.self, forKey: .coordinates) ?? Coordinates(latitude: 0, longitude: 0)
