@@ -13,6 +13,8 @@ struct SettingsView: View {
     @State private var showDownloadStartedAlert = false
     @Environment(\.colorScheme) var systemColorScheme  // System color scheme
     @State private var forceUpdate = UUID()  // Neuer State für Force Update
+    @State private var showingSuccessAlert = false
+    @State private var successMessage = ""
     
     private func showDeleteConfirmation(for region: String) {
         regionToDelete = region
@@ -104,7 +106,7 @@ struct SettingsView: View {
                     Text("Are you sure you want to delete the map for \(region.capitalized)?")
                 }
                 
-                DataManagementSection(logStore: logStore)
+                DataManagementSection(logStore: logStore, voyageStore: voyageStore)
                 
                 AboutSection()
             }
@@ -116,6 +118,30 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+        }
+        .overlay {
+            if showingSuccessAlert {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .overlay {
+                        VStack {
+                            Text("Import Successful")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                            Text(successMessage)
+                                .multilineTextAlignment(.center)
+                            Button("OK") {
+                                showingSuccessAlert = false
+                                dismiss()
+                            }
+                            .padding(.top)
+                        }
+                        .padding()
+                        .background(Color(UIColor.systemBackground))
+                        .cornerRadius(10)
+                        .padding(40)
+                    }
             }
         }
         .presentationDragIndicator(.visible)
@@ -186,148 +212,270 @@ private struct WeatherSection: View {
 
 private struct DataManagementSection: View {
     @ObservedObject var logStore: LogStore
+    @ObservedObject var voyageStore: VoyageStore
     @State private var showingDeleteConfirmation = false
-    @State private var showingDeletedFeedback = false
+    @State private var showingRestoreAlert = false
     @State private var showingExporter = false
     @State private var showingImporter = false
     @State private var showingImportError = false
+    @State private var showingDeletedFeedback = false
     @State private var importErrorMessage = ""
-    @State private var isImporting = false
-    @State private var showingImportSuccess = false
+    @State private var isProcessing = false
+    @State private var showingBackupSuccessAlert = false
+    @State private var showingImportSuccessAlert = false
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         Section("Data Management") {
+            // Backup Button
             Button {
-                showingExporter = true
+                createBackup()
             } label: {
                 HStack {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Export All Log Entries")
-                }
-            }
-            .disabled(isImporting)
-            
-            Button {
-                showingImporter = true
-            } label: {
-                HStack {
-                    if isImporting {
+                    if isProcessing {
                         ProgressView()
                             .scaleEffect(0.8)
                             .frame(width: 20, height: 20)
                     } else {
-                        Image(systemName: "square.and.arrow.down")
+                        Image(systemName: "arrow.clockwise.icloud")
                     }
-                    Text(isImporting ? "Importing..." : "Import Log Entries")
+                    Text(isProcessing ? "Creating Backup..." : "Create Backup")
                 }
             }
-            .disabled(isImporting)
+            .disabled(isProcessing)
             
+            // Restore Button
+            Button {
+                showingRestoreAlert = true
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.counterclockwise.icloud")
+                    Text("Restore from Backup")
+                }
+            }
+            .disabled(isProcessing)
+            
+            // Delete All Data Button
             Button(role: .destructive) {
                 showingDeleteConfirmation = true
             } label: {
                 HStack {
                     Image(systemName: "trash")
-                    Text("Delete All Log Entries")
+                    Text("Delete All Data")
                 }
             }
-            .disabled(isImporting)
+            .disabled(isProcessing)
+        }
+        .alert("Restore from Backup", isPresented: $showingRestoreAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Choose Backup File") {
+                showingImporter = true
+            }
+        } message: {
+            Text("This will replace all current data with the data from the backup file. This action cannot be undone.")
         }
         .fileExporter(
             isPresented: $showingExporter,
-            document: LogEntriesDocument(entries: Array(logStore.entries)),
+            document: BackupDocument(voyages: voyageStore.voyages, entries: logStore.entries),
             contentType: .json,
-            defaultFilename: "sailing-log-\(Date().ISO8601Format()).json"
+            defaultFilename: "sailing-log-backup-\(Date().ISO8601Format()).json"
         ) { result in
             switch result {
-            case .success(let url):
-                print("Saved to \(url)")
+            case .success(_):
+                showingBackupSuccessAlert = true
             case .failure(let error):
-                print("Error saving file: \(error.localizedDescription)")
+                importErrorMessage = "Backup failed: \(error.localizedDescription)"
+                showingImportError = true
             }
+            isProcessing = false
         }
         .fileImporter(
             isPresented: $showingImporter,
             allowedContentTypes: [.json]
         ) { result in
-            isImporting = true
+            isProcessing = true
+            print("\n=== Starting Import Process ===")
             
             Task {
                 do {
                     let url = try result.get()
+                    print("📥 Selected file URL: \(url.absoluteString)")
+                    
                     guard url.startAccessingSecurityScopedResource() else {
-                        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Permission denied to access file"])
+                        print("❌ Security access denied for URL")
+                        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Permission denied"])
                     }
                     defer { url.stopAccessingSecurityScopedResource() }
                     
                     let data = try Data(contentsOf: url)
+                    print("📥 Read \(data.count) bytes from file")
+                    
+                    // Validate JSON structure
+                    guard let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                        print("❌ Failed to parse JSON structure")
+                        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                    }
+                    
+                    print("\n🔍 Validating JSON structure:")
+                    print("Found keys: \(jsonObject.keys.sorted().joined(separator: ", "))")
+                    
+                    // Validate entries
+                    if let entries = jsonObject["entries"] as? [[String: Any]] {
+                        print("\n📝 Entries validation:")
+                        print("- Found \(entries.count) entries")
+                        if let firstEntry = entries.first {
+                            print("- First entry keys: \(firstEntry.keys.sorted().joined(separator: ", "))")
+                        }
+                    } else {
+                        print("❌ Invalid entries format")
+                        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid entries format"])
+                    }
+                    
+                    // Validate voyages
+                    if let voyages = jsonObject["voyages"] as? [[String: Any]] {
+                        print("\n🚢 Voyages validation:")
+                        print("- Found \(voyages.count) voyages")
+                        if let firstVoyage = voyages.first {
+                            print("- First voyage keys: \(firstVoyage.keys.sorted().joined(separator: ", "))")
+                            
+                            // Check for active voyages
+                            let activeVoyages = voyages.filter { ($0["isActive"] as? Bool) == true }
+                            print("- Active voyages found: \(activeVoyages.count)")
+                            
+                            // Check for voyage dates
+                            if let startDate = firstVoyage["startDate"] as? String {
+                                print("- Start date format: \(startDate)")
+                            }
+                        }
+                    } else {
+                        print("❌ Invalid voyages format")
+                        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid voyages format"])
+                    }
+                    
+                    print("\n📅 Backup metadata:")
+                    if let backupDate = jsonObject["backupDate"] as? String {
+                        print("- Backup date: \(backupDate)")
+                    }
+                    if let appVersion = jsonObject["appVersion"] as? String {
+                        print("- App version: \(appVersion)")
+                    }
+                    
+                    print("\n🔄 Attempting to decode backup data...")
                     let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601  // Wichtig für ISO8601 Datumsstrings
                     
-                    // Konfiguriere den Decoder für fehlende Werte
-                    decoder.keyDecodingStrategy = .useDefaultKeys
-                    decoder.dateDecodingStrategy = .iso8601
+                    let backup = try decoder.decode(BackupData.self, from: data)
+                    print("✅ Successfully decoded backup data:")
+                    print("- Total voyages: \(backup.voyages.count)")
+                    print("- Total entries: \(backup.entries.count)")
+                    print("- Backup date: \(backup.backupDate)")
+                    print("- App version: \(backup.appVersion)")
                     
-                    // Setze die Standardwerte für fehlende Felder
-                    let entries = try decoder.decode([LogEntry].self, from: data)
+                    // Additional validation
+                    let duplicateVoyageIds = findDuplicates(in: backup.voyages.map { $0.id })
+                    let duplicateEntryIds = findDuplicates(in: backup.entries.map { $0.id })
                     
+                    if !duplicateVoyageIds.isEmpty {
+                        print("⚠️ Warning: Found duplicate voyage IDs: \(duplicateVoyageIds)")
+                    }
+                    if !duplicateEntryIds.isEmpty {
+                        print("⚠️ Warning: Found duplicate entry IDs: \(duplicateEntryIds)")
+                    }
+                    
+                    // Restore data
                     await MainActor.run {
-                        logStore.importEntries(entries)
-                        isImporting = false
-                        showingImportSuccess = true
+                        print("\n💾 Starting data restoration...")
+                        voyageStore.restoreFromBackup(backup.voyages)
+                        logStore.restoreFromBackup(backup.entries)
+                        print("✅ Data restoration completed")
+                        showingImportSuccessAlert = true
                     }
                 } catch {
-                    await MainActor.run {
-                        print("Import error details: \(error)")  // Detailed debug output
-                        if let decodingError = error as? DecodingError {
-                            switch decodingError {
-                            case .dataCorrupted(let context):
-                                importErrorMessage = "Data corrupted: \(context.debugDescription)"
-                            case .keyNotFound(let key, let context):
-                                importErrorMessage = "Key '\(key.stringValue)' not found: \(context.debugDescription)"
-                            case .typeMismatch(let type, let context):
-                                importErrorMessage = "Type '\(type)' mismatch: \(context.debugDescription)"
-                            case .valueNotFound(let type, let context):
-                                importErrorMessage = "Value of type '\(type)' not found: \(context.debugDescription)"
-                            @unknown default:
-                                importErrorMessage = "Unknown decoding error: \(decodingError.localizedDescription)"
-                            }
-                        } else {
-                            importErrorMessage = "Failed to import: \(error.localizedDescription)"
+                    print("\n❌ Import error: \(error)")
+                    if let decodingError = error as? DecodingError {
+                        print("🔍 Decoding error details:")
+                        switch decodingError {
+                        case .dataCorrupted(let context):
+                            print("   Data corrupted: \(context.debugDescription)")
+                            print("   Coding path: \(context.codingPath)")
+                        case .keyNotFound(let key, let context):
+                            print("   Key '\(key.stringValue)' not found")
+                            print("   Coding path: \(context.codingPath)")
+                        case .typeMismatch(let type, let context):
+                            print("   Type mismatch: expected \(type)")
+                            print("   Coding path: \(context.codingPath)")
+                            print("   Debug description: \(context.debugDescription)")
+                        case .valueNotFound(let type, let context):
+                            print("   Value of type \(type) not found")
+                            print("   Coding path: \(context.codingPath)")
+                        @unknown default:
+                            print("   Unknown decoding error")
                         }
+                    }
+                    await MainActor.run {
+                        importErrorMessage = "Could not read backup file: \(error.localizedDescription)\n\nPlease make sure you're selecting a valid backup file created by this app."
                         showingImportError = true
-                        isImporting = false
                     }
                 }
+                isProcessing = false
+                print("\n=== Import Process Completed ===\n")
             }
         }
         .confirmationDialog(
-            "Delete All Entries",
+            "Delete All Data",
             isPresented: $showingDeleteConfirmation,
             actions: {
                 Button("Delete All", role: .destructive) {
                     logStore.deleteAllEntries()
+                    voyageStore.deleteAllData()
                     showingDeletedFeedback = true
                 }
             },
             message: {
-                Text("Are you sure you want to delete all log entries? This action cannot be undone.")
+                Text("Are you sure you want to delete all voyages and log entries? This action cannot be undone.")
             }
         )
-        .alert("Entries Deleted", isPresented: $showingDeletedFeedback) {
-            Button("OK", role: .cancel) { }
+        .alert("Import Successful", isPresented: $showingImportSuccessAlert) {
+            Button("OK", role: .cancel) {
+                dismiss()
+            }
         } message: {
-            Text("All log entries have been successfully deleted.")
+            Text("Data restored successfully")
+        }
+        .alert("Backup Successful", isPresented: $showingBackupSuccessAlert) {
+            Button("OK", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            Text("Your data has been backed up successfully")
         }
         .alert("Import Error", isPresented: $showingImportError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(importErrorMessage)
         }
-        .alert("Import Successful", isPresented: $showingImportSuccess) {
+        .alert("Data Deleted", isPresented: $showingDeletedFeedback) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Log entries were successfully imported.")
+            Text("All voyages and log entries have been successfully deleted.")
         }
+    }
+    
+    private func createBackup() {
+        isProcessing = true
+        showingExporter = true
+    }
+    
+    // Helper function to find duplicates
+    private func findDuplicates(in array: [UUID]) -> [String] {
+        var seen = Set<UUID>()
+        var duplicates = Set<UUID>()
+        for item in array {
+            if !seen.insert(item).inserted {
+                duplicates.insert(item)
+            }
+        }
+        return Array(duplicates).map { $0.uuidString }
     }
 }
 
@@ -344,18 +492,10 @@ private struct AboutSection: View {
                     .font(.footnote)
                     .foregroundColor(.gray)
                 
-                HStack(spacing: 4) {
-                    Text("Created with")
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(.red)
-                    Text("in Zurich")
-                }
-                .font(.footnote)
-                .foregroundColor(.gray)
-                
-                Text("with the sea in our heart.")
+                Text("Created with ❤️ in Zurich with the sea in our heart. May you always have wind in your sails and a hand-width of water under your keel!")
                     .font(.footnote)
                     .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .listRowBackground(Color.clear)
@@ -370,23 +510,38 @@ struct SeaRegion: Identifiable {
     let size: String
 }
 
-struct LogEntriesDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [UTType.json] }
+struct BackupData: Codable {
+    let voyages: [Voyage]
+    let entries: [LogEntry]
+    let backupDate: Date
+    let appVersion: String
     
-    var entries: [LogEntry]
-    
-    init(entries: [LogEntry]) {
+    init(voyages: [Voyage], entries: [LogEntry]) {
+        self.voyages = voyages
         self.entries = entries
+        self.backupDate = Date()
+        self.appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+}
+
+struct BackupDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    
+    let backup: BackupData
+    
+    init(voyages: [Voyage], entries: [LogEntry]) {
+        self.backup = BackupData(voyages: voyages, entries: entries)
     }
     
     init(configuration: ReadConfiguration) throws {
-        entries = []
+        throw CocoaError(.fileReadCorruptFile)
     }
     
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
-        let data = try encoder.encode(entries)
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(backup)
         return FileWrapper(regularFileWithContents: data)
     }
 }

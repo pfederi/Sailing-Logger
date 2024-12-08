@@ -171,6 +171,28 @@ class LogStore: ObservableObject {
         .first?
         .distance ?? 0
     }
+    
+    func restoreFromBackup(_ entries: [LogEntry]) {
+        // Lösche zuerst alle bestehenden Einträge
+        self.entries.removeAll()
+        
+        // Füge die Backup-Einträge hinzu
+        self.entries = entries
+        
+        // Sortiere die Einträge nach Timestamp
+        self.entries.sort { $0.timestamp > $1.timestamp }
+        
+        // Speichere die wiederhergestellten Daten
+        save()
+        
+        print("📥 Restored \(entries.count) log entries from backup")
+    }
+    
+    func deleteAllData() {
+        entries.removeAll()
+        save()
+        print("🗑 Deleted all log entries")
+    }
 }
 
 // Neue Struktur für Import-Statistiken

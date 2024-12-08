@@ -119,4 +119,30 @@ class VoyageStore: ObservableObject {
             save()
         }
     }
+    
+    func restoreFromBackup(_ voyages: [Voyage]) {
+        // Lösche zuerst alle bestehenden Voyages
+        self.voyages.removeAll()
+        
+        // Füge die Backup-Voyages hinzu
+        self.voyages = voyages
+        
+        // Finde die aktive Voyage
+        activeVoyage = voyages.first(where: { $0.isActive && $0.endDate == nil })
+        
+        // Speichere die wiederhergestellten Daten
+        save()
+        
+        print("📥 Restored \(voyages.count) voyages from backup")
+        if let active = activeVoyage {
+            print("📥 Active voyage: \(active.name)")
+        }
+    }
+    
+    func deleteAllData() {
+        voyages.removeAll()
+        activeVoyage = nil
+        save()
+        print("🗑 Deleted all voyages")
+    }
 } 

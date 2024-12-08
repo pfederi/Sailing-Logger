@@ -12,6 +12,11 @@ import UIKit
 struct Sailing_LoggerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+    init() {
+            // Verhindert Uppercase-Darstellung
+            UIButton.appearance(whenContainedInInstancesOf: [UIAlertController.self]).configuration?.buttonSize = .medium
+        }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
