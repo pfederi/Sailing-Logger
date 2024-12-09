@@ -7,6 +7,7 @@ struct LogEntryDetailView: View {
     @State var entry: LogEntry
     var isArchived: Bool = false  // Default ist false für normale Ansicht
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @State private var showingDeleteConfirmation = false
     @State private var showingEditSheet = false
     @ObservedObject var voyageStore: VoyageStore
@@ -42,10 +43,12 @@ struct LogEntryDetailView: View {
                 HStack {
                     Image(systemName: "arrow.triangle.swap")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Distance")
+                        .foregroundColor(.primary)
                     Spacer()
                     Text(String(format: "%.1f nm", entry.distance))
+                        .foregroundColor(.secondary)
                 }
             }
             .listSectionSpacing(.compact)
@@ -55,8 +58,9 @@ struct LogEntryDetailView: View {
                     HStack {
                         Image(systemName: "helm")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text(maneuver.rawValue)
+                            .foregroundColor(.primary)
                     }
                 }
             }
@@ -100,22 +104,22 @@ struct LogEntryDetailView: View {
                     HStack {
                         Image(systemName: "sailboat")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         VStack(alignment: .leading) {
                             if entry.sails.mainSail {
-                                Text("Main Sail")
+                                Text("Main Sail").foregroundColor(.primary)
                             }
                             if entry.sails.jib {
-                                Text("Jib")
+                                Text("Jib").foregroundColor(.primary)
                             }
                             if entry.sails.genoa {
-                                Text("Genoa")
+                                Text("Genoa").foregroundColor(.primary)
                             }
                             if entry.sails.spinnaker {
-                                Text("Spinnaker")
+                                Text("Spinnaker").foregroundColor(.primary)
                             }
                             if entry.sails.reefing > 0 {
-                                Text("Reefing: \(entry.sails.reefing)")
+                                Text("Reefing: \(entry.sails.reefing)").foregroundColor(.primary)
                             }
                         }
                     }
@@ -126,16 +130,19 @@ struct LogEntryDetailView: View {
                 HStack {
                     Image(systemName: "engine.combustion")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Engine")
+                        .foregroundColor(.primary)
                     Spacer()
                     Text(entry.engineState == .on ? "Engine running" : "Engine off")
+                        .foregroundColor(.secondary)
                 }
             }
             
             if let notes = entry.notes, !notes.isEmpty {
                 Section("Notes") {
                     Text(notes)
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -148,7 +155,7 @@ struct LogEntryDetailView: View {
                         showingEditSheet = true
                     } label: {
                         Label("Edit Entry", systemImage: "pencil")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(colorScheme == .dark ? MaritimeColors.navyDark : MaritimeColors.navy)
                     }
                     
                     Button(role: .destructive) {
@@ -158,7 +165,7 @@ struct LogEntryDetailView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(colorScheme == .dark ? .white : MaritimeColors.navy)
                 }
             }
         }
@@ -220,16 +227,19 @@ struct DetailRow: View {
     let icon: String
     let title: String
     let value: String
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack {
             Image(systemName: icon)
                 .frame(width: 24)
-                .foregroundColor(MaritimeColors.navy)
+                .foregroundColor(MaritimeColors.navy(for: colorScheme))
             Text(title)
                 .frame(width: 100, alignment: .leading)
+                .foregroundColor(.primary)
             Spacer()
             Text(value)
+                .foregroundColor(.secondary)
         }
     }
 }

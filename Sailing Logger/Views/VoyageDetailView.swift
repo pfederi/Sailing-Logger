@@ -21,6 +21,7 @@ struct VoyageDetailView: View {
     @State private var alertMessage = ""
     @State private var exportURL: URL?
     @State private var isPreparingExport = false
+    @Environment(\.colorScheme) var colorScheme
     
     init(voyage: Voyage, voyageStore: VoyageStore, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, logStore: LogStore) {
         self.voyage = voyage
@@ -69,7 +70,7 @@ struct VoyageDetailView: View {
             } header: {
                 Label("Voyage Details", systemImage: "info.circle.fill")
                     .fontWeight(.bold)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
             // Crew Section
             if !currentVoyage.crew.isEmpty {
@@ -88,7 +89,7 @@ struct VoyageDetailView: View {
                 } header: {
                     Label("Crew", systemImage: "person.3.fill")
                     .fontWeight(.bold)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
             // Stats Section
@@ -147,7 +148,7 @@ struct VoyageDetailView: View {
                 } header: {
                     Label("Statistics", systemImage: "chart.bar.fill")
                         .fontWeight(.bold)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
 
@@ -171,7 +172,7 @@ struct VoyageDetailView: View {
                 } header: {
                     Label("Log Entries", systemImage: "list.bullet")
                     .fontWeight(.bold)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
 
@@ -182,7 +183,7 @@ struct VoyageDetailView: View {
                         Button(action: { importVoyageData() }) {
                             Label("Import", systemImage: "square.and.arrow.down")
                                 .frame(maxWidth: .infinity)
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 .padding(.vertical, 8)
                         }
                         .disabled(isPreparingExport)
@@ -197,12 +198,12 @@ struct VoyageDetailView: View {
                                     Text("Preparing...")
                                 }
                                 .frame(maxWidth: .infinity)
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 .padding(.vertical, 8)
                             } else {
                                 Label("Export", systemImage: "square.and.arrow.up")
                                     .frame(maxWidth: .infinity)
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                     .padding(.vertical, 8)
                             }
                         }
@@ -211,13 +212,10 @@ struct VoyageDetailView: View {
                 } header: {
                     Label("Voyage Sync", systemImage: "arrow.triangle.2.circlepath")
                         .fontWeight(.bold)
-                        .foregroundColor(MaritimeColors.navy)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 } footer: {
                     Text("Export your voyage data to share with crew members or import data from others to sync log entries between devices.")
-                        .foregroundColor(MaritimeColors.navy)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                        .foregroundColor(.secondary)
                 }
                 .listRowInsets(EdgeInsets())
                 .buttonStyle(.plain)
@@ -242,10 +240,10 @@ struct VoyageDetailView: View {
                 } header: {
                     Label("End Voyage", systemImage: "flag.checkered")
                         .fontWeight(.bold)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 } footer: {
                     Text("Once a voyage is ended, it will be moved to the archive. Log entries of archived voyages cannot be modified anymore")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(.secondary)
                         .padding(.top, 8)
                 }
                 .alert("Error", isPresented: $showAlert) {

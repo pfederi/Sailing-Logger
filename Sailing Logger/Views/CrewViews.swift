@@ -4,38 +4,39 @@ struct CrewMemberRow: View {
     let member: CrewMember
     let onEdit: () -> Void
     let onDelete: () -> Void
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         Button(action: onEdit) {
             HStack {
                 if member.role == .crew {
                     Image(systemName: "line.3.horizontal")
-                        .foregroundColor(.gray)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 } else if member.role == .skipper {
                     Image(systemName: "sailboat.circle.fill")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         .font(.system(size: 24))
                 } else if member.role == .secondSkipper {
                     Image(systemName: "sailboat.circle")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         .font(.system(size: 24))
                 }
                 VStack(alignment: .leading) {
                     Text(member.name)
                     Text(member.role.rawValue)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme).opacity(0.6))
                         .font(.caption)
                 }
                 Spacer()
             }
         }
+        .tint(MaritimeColors.navy(for: colorScheme))
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 onDelete()
             } label: {
                 Label("Delete", systemImage: "trash")
             }
-            .tint(.red)
         }
     }
 }
@@ -45,6 +46,7 @@ struct CrewSection: View {
     @Binding var showingAddCrew: Bool
     @Binding var crewToEditIndex: Int?
     @Environment(\.editMode) private var editMode
+    @Environment(\.colorScheme) var colorScheme
     let hasSkipper: Bool
     
     var body: some View {
@@ -55,7 +57,6 @@ struct CrewSection: View {
                 return false
             }
         
-        // Skipper Section nur anzeigen, wenn Skipper vorhanden sind
         if !skippers.isEmpty {
             Section(header: Text("Skippers")) {
                 ForEach(skippers) { member in
@@ -75,7 +76,6 @@ struct CrewSection: View {
             }
         }
         
-        // Crew Section
         Section(header: Text("Crew Members")) {
             let crewMembers = crew.filter { $0.role == .crew }
             
@@ -107,7 +107,9 @@ struct CrewSection: View {
                 showingAddCrew = true 
             }) {
                 Label("Add Crew Member", systemImage: "person.badge.plus")
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
         }
+        .tint(MaritimeColors.navy(for: colorScheme))
     }
 }

@@ -7,6 +7,7 @@ struct MainToolbarModifier: ViewModifier {
     let locationManager: LocationManager
     let tileManager: OpenSeaMapTileManager
     let logStore: LogStore
+    @Environment(\.colorScheme) var colorScheme
     
     func body(content: Content) -> some View {
         content
@@ -16,7 +17,7 @@ struct MainToolbarModifier: ViewModifier {
                         showSettings()
                     } label: {
                         Image(systemName: "gear")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(colorScheme == .dark ? MaritimeColors.navyDark : MaritimeColors.navy)
                     }
                 }
                 
@@ -31,13 +32,14 @@ struct MainToolbarModifier: ViewModifier {
                             )
                         } label: {
                             Label("Archive", systemImage: "archivebox")
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(colorScheme == .dark ? MaritimeColors.navyDark : MaritimeColors.navy)
                         }
                     }
                 }
             }
-            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .foregroundColor(colorScheme == .dark ? .white : .primary)
     }
 }
 
@@ -65,34 +67,33 @@ struct DetailToolbarModifier: ViewModifier {
     let showEdit: () -> Void
     let showLog: () -> Void
     @FocusState private var focusedField: Field?
+    @Environment(\.colorScheme) var colorScheme
     
     private enum Field: Hashable {
-        case field1  // Erweitere dies nach Bedarf
+        case field1
     }
     
     func body(content: Content) -> some View {
         content
             .toolbar {
-                // Navigation Bar Items
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     HStack {
                         Button {
                             showEdit()
                         } label: {
                             Text("Edit")
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(colorScheme == .dark ? MaritimeColors.navyDark : MaritimeColors.navy)
                         }
                         
                         Button {
                             showLog()
                         } label: {
                             Image(systemName: "doc.text")
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(colorScheme == .dark ? MaritimeColors.navyDark : MaritimeColors.navy)
                         }
                     }
                 }
                 
-                // Keyboard Toolbar Items
                 ToolbarItemGroup(placement: .keyboard) {
                     Button(action: {
                         // Previous field logic
@@ -113,8 +114,9 @@ struct DetailToolbarModifier: ViewModifier {
                     }
                 }
             }
-            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .foregroundColor(colorScheme == .dark ? .white : .primary)
     }
 }
 
@@ -132,6 +134,7 @@ extension View {
 
 struct LogViewToolbarModifier: ViewModifier {
     let dismiss: () -> Void
+    @Environment(\.colorScheme) var colorScheme
     
     func body(content: Content) -> some View {
         content
@@ -140,9 +143,10 @@ struct LogViewToolbarModifier: ViewModifier {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(colorScheme == .dark ? .white : MaritimeColors.navy)
                 }
             }
-            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
     }
 }

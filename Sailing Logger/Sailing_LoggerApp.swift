@@ -11,16 +11,18 @@ import UIKit
 @main
 struct Sailing_LoggerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.colorScheme) var colorScheme
     
     init() {
-            // Verhindert Uppercase-Darstellung
-            UIButton.appearance(whenContainedInInstancesOf: [UIAlertController.self]).configuration?.buttonSize = .medium
-        }
+        // Verhindert Uppercase-Darstellung
+        UIButton.appearance(whenContainedInInstancesOf: [UIAlertController.self]).configuration?.buttonSize = .medium
+    }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .tint(MaritimeColors.navy)
+                .tint(Color("CustomAccentColor"))
+                .accentColor(Color("CustomAccentColor"))
         }
     }
 }

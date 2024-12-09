@@ -5,6 +5,7 @@ import UserNotifications
 
 struct NewLogEntryView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var logStore: LogStore
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
@@ -329,7 +330,7 @@ struct NewLogEntryView: View {
             HStack {
                 Image(systemName: "clock")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 DatePicker("Time", 
                     selection: $timestamp,
                     in: ...maxDate,
@@ -355,7 +356,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "location.fill")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Position")
                     Spacer()
                 }
@@ -487,8 +488,8 @@ struct NewLogEntryView: View {
                 HStack(alignment: .top) {
                     Image(systemName: "note.text")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
-                        .padding(.top, 10)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                        .padding(.top, 12)
                     TextEditor(text: $notes)
                         .frame(height: 100)
                         .focused($focusedField, equals: .notes)
@@ -518,7 +519,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "arrow.triangle.swap")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Distance")
                     Spacer()
                     TextField("", value: $distance, formatter: numberFormatter)
@@ -535,7 +536,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "helm")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Maneuver")
                     Spacer()
                     Picker("", selection: $selectedManeuver) {
@@ -549,7 +550,7 @@ struct NewLogEntryView: View {
                             }
                         }
                     }
-                    .tint(.black)
+                    .tint(MaritimeColors.navy(for: colorScheme))
                 }
             }
             
@@ -557,7 +558,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "safari")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("C°")
                     Spacer()
                     TextField("", value: courseBinding(for: $magneticCourse, error: $magneticCourseError), formatter: numberFormatter)
@@ -576,7 +577,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "safari.fill")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("COG")
                     Spacer()
                     TextField("", value: courseBinding(for: $courseOverGround, error: $cogError), formatter: numberFormatter)
@@ -595,7 +596,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "speedometer")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("SOG")
                     Spacer()
                     TextField("", value: $speed, formatter: numberFormatter)
@@ -609,12 +610,12 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "barometer")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Barometer")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -630,12 +631,12 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "thermometer")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Temperature")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -651,12 +652,12 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "eye")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Visibility")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -668,18 +669,18 @@ struct NewLogEntryView: View {
                                 .tag(Optional(visibility))
                         }
                     }
-                    .tint(.black)
+                    .tint(MaritimeColors.navy(for: colorScheme))
                 }
                 
                 HStack {
                     Image(systemName: "cloud")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Cloud Cover")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -691,7 +692,7 @@ struct NewLogEntryView: View {
                                 .tag(Optional(cover.value))
                         }
                     }
-                    .tint(.black)
+                    .tint(MaritimeColors.navy(for: colorScheme))
                 }
             }
             
@@ -699,12 +700,12 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "arrow.up.left.circle")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Direction")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -716,18 +717,18 @@ struct NewLogEntryView: View {
                                 .tag(Optional(direction))
                         }
                     }
-                    .tint(.black)
+                    .tint(MaritimeColors.navy(for: colorScheme))
                 }
                 
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Speed")
                     if weatherDataLoaded {
                         Text("API")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             .baselineOffset(14)
                             .padding(.leading, -4)
                     }
@@ -751,7 +752,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "gauge")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Spacer()
                     Picker("Force", selection: Binding(
                         get: { windSpeedBft },
@@ -764,7 +765,7 @@ struct NewLogEntryView: View {
                             Text("Bft \(bft)").tag(bft)
                         }
                     }
-                    .tint(.black)
+                    .tint(MaritimeColors.navy(for: colorScheme))
                 }
             }
             
@@ -772,32 +773,32 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "sailboat")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Main Sail", isOn: $sails.mainSail)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Jib", isOn: $sails.jib)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Genoa", isOn: $sails.genoa)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Spinnaker", isOn: $sails.spinnaker)
                 }
                 
                 HStack {
                     Image(systemName: "minus.circle")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Reefing")
                     Spacer()
                     HStack(spacing: 16) {
@@ -836,7 +837,7 @@ struct NewLogEntryView: View {
                 HStack {
                     Image(systemName: "engine.combustion")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Picker("Engine", selection: $engineState) {
                         Text("Off").tag(EngineState.off)
                         Text("On").tag(EngineState.on)
@@ -849,7 +850,7 @@ struct NewLogEntryView: View {
             
             HStack {
                 Text("Fields marked with ")
-                + Text("API").foregroundColor(MaritimeColors.navy)
+                + Text("API").foregroundColor(MaritimeColors.navy(for: colorScheme))
                 + Text(" are automatically filled with OpenWeather data when available.")
             }
             .font(.caption)

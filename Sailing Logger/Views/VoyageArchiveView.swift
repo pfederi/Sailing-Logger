@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VoyageArchiveView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var voyageStore: VoyageStore
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
@@ -85,7 +86,7 @@ struct VoyageArchiveView: View {
         }
         .navigationTitle("Voyage Archive")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+        .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
         .confirmationDialog(
             "Delete Voyage",
             isPresented: $showingDeleteConfirmation,
@@ -236,6 +237,7 @@ private struct ArchivedLogEntryRow: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var logStore: LogStore
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationLink {
@@ -252,7 +254,7 @@ private struct ArchivedLogEntryRow: View {
                 HStack {
                     Image(systemName: entry.engineState == .on ? "engine.combustion" : "sailboat")
                         .font(.system(size: 20))
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         .frame(width: 32)
                     
                     VStack(alignment: .leading) {
@@ -281,7 +283,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.distance > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.triangle.swap")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.1f nm", entry.distance))
                             }
                         }
@@ -289,7 +291,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.magneticCourse > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.0f°", entry.magneticCourse))
                             }
                         }
@@ -297,7 +299,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.courseOverGround > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari.fill")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.0f°", entry.courseOverGround))
                             }
                         }
@@ -305,7 +307,7 @@ private struct ArchivedLogEntryRow: View {
                         if entry.speed > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "speedometer")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.1f kts", entry.speed))
                             }
                         }

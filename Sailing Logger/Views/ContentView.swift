@@ -5,13 +5,14 @@ import CoreLocation
 private struct VoyageHeaderContent: View {
     let voyage: Voyage
     @ObservedObject var logStore: LogStore
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: "point.topright.filled.arrow.triangle.backward.to.point.bottomleft.scurvepath")
                     .font(.system(size: 32))
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     .alignmentGuide(.firstTextBaseline) { d in
                         d[.top]
                     }
@@ -19,7 +20,7 @@ private struct VoyageHeaderContent: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(voyage.name)
                         .font(.headline)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("\(voyage.boatName) (\(voyage.boatType))")
                         .font(.subheadline)
                     Text("Total Distance: \(String(format: "%.1f", logStore.totalDistance)) nm")
@@ -52,6 +53,7 @@ struct ContentView: View {
     @State private var showingEditVoyage = false
     @State private var showingEndVoyageConfirmation = false
     @State private var showingVoyageDetail = false
+    @Environment(\.colorScheme) var colorScheme
     
     init() {
         // Create voyageStore first
@@ -78,7 +80,7 @@ struct ContentView: View {
                     .ignoresSafeArea()
                     .opacity(0.33)
                 } else {
-                    MaritimeColors.oceanBlue
+                    MaritimeColors.oceanBlue(for: colorScheme)
                         .ignoresSafeArea()
                 }
             }
@@ -99,7 +101,7 @@ struct ContentView: View {
                 }
                 
                 Rectangle()
-                    .fill(MaritimeColors.seafoam)
+                    .fill(MaritimeColors.seafoam(for: colorScheme))
                     .frame(height: 1)
             }
         }
@@ -113,7 +115,7 @@ struct ContentView: View {
                         Spacer()
                         Text("Add your first log entry to start tracking your voyage.")
                             .padding()
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Spacer()
                     }
                 } else {
@@ -130,7 +132,7 @@ struct ContentView: View {
                     Spacer()
                     Text("Start a new Voyage to begin logging entries.")
                         .padding()
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Spacer()
                 }
             }
@@ -150,16 +152,16 @@ struct ContentView: View {
                     }
                 } label: {
                     HStack(spacing: 16) {
-                        Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus")
+                        Image(systemName: shouldShowNewVoyage ? "plus.rectangle.fill" : "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(colorScheme == .dark ? MaritimeColors.navy : .white)
                         Text(shouldShowNewVoyage ? "New Voyage" : "Add Log Entry")
                             .font(.title3)
-                            .foregroundColor(.white)
+                            .foregroundColor(colorScheme == .dark ? MaritimeColors.navy : .white)
                     }
                     .padding(.horizontal, 24)
                     .frame(height: 56)
-                    .background(MaritimeColors.navy)
+                    .background(MaritimeColors.navy(for: colorScheme))
                     .clipShape(Capsule())
                     .shadow(radius: 4)
                 }
@@ -190,13 +192,13 @@ struct ContentView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(MaritimeColors.seafoam, for: .navigationBar)
+            .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Sailing Logger")
                         .font(.headline)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
             .mainToolbar(
@@ -224,20 +226,20 @@ struct ContentView: View {
                     tileManager: tileManager,
                     themeManager: themeManager
                 )
-                .tint(MaritimeColors.navy)
+                .tint(MaritimeColors.navy(for: colorScheme))
             }
         }
         .sheet(isPresented: $showingNewVoyage) {
             NavigationView {
                 NewVoyageView(voyageStore: voyageStore, logStore: logStore)
-                    .tint(MaritimeColors.navy)
+                    .tint(MaritimeColors.navy(for: colorScheme))
             }
         }
         .sheet(isPresented: $showingEditVoyage) {
             if let activeVoyage = voyageStore.activeVoyage {
                 NavigationView {
                     EditVoyageView(voyageStore: voyageStore, voyage: activeVoyage)
-                        .tint(MaritimeColors.navy)
+                        .tint(MaritimeColors.navy(for: colorScheme))
                 }
             }
         }

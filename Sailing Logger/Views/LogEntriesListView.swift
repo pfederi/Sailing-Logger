@@ -7,6 +7,7 @@ struct LogEntriesListView: View {
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @State private var showingDeleteConfirmation = false
     @State private var entryToDelete: LogEntry?
+    @Environment(\.colorScheme) var colorScheme
     
     private var groupedEntries: [(String, [LogEntry])] {
         let dateFormatter = DateFormatter()
@@ -73,6 +74,7 @@ struct LogEntriesSection: View {
     let tileManager: OpenSeaMapTileManager
     @Binding var entryToDelete: LogEntry?
     @Binding var showingDeleteConfirmation: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         Section {
@@ -99,13 +101,13 @@ struct LogEntriesSection: View {
             HStack {
                 Text(date)
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     .textCase(nil)
                     .padding(.top, 10)
                 Spacer()
                 NavigationLink(destination: DailyLogViewContainer(entries: entries, date: date)) {
                     Image(systemName: "doc.text")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
         }

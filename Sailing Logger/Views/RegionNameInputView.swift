@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RegionNameInputView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @Binding var regionName: String
     let onSave: (String) -> Void
     
@@ -13,6 +14,7 @@ struct RegionNameInputView: View {
                         .textInputAutocapitalization(.words)
                 } footer: {
                     Text("Enter a name for this map region")
+                        .foregroundColor(.secondary)
                 }
             }
             .navigationTitle("Name Region")
@@ -22,6 +24,7 @@ struct RegionNameInputView: View {
                         regionName = ""
                         dismiss()
                     }
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Download") {
@@ -30,6 +33,7 @@ struct RegionNameInputView: View {
                         dismiss()
                     }
                     .disabled(regionName.isEmpty)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
         }

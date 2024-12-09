@@ -3,6 +3,7 @@ import MapKit
 
 struct EditLogEntryView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var logStore: LogStore
     let entry: LogEntry
     @ObservedObject var locationManager: LocationManager
@@ -216,7 +217,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "arrow.triangle.swap")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Distance")
                         Spacer()
                         TextField("", value: $distance, formatter: numberFormatter)
@@ -234,7 +235,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "helm")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Maneuver")
                         Spacer()
                         Picker("", selection: $selectedManeuver) {
@@ -256,7 +257,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "safari")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("C°")
                         Spacer()
                         TextField("", value: courseBinding(for: $magneticCourse, error: $magneticCourseError), formatter: numberFormatter)
@@ -276,7 +277,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "safari.fill")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("COG")
                         Spacer()
                         TextField("", value: courseBinding(for: $courseOverGround, error: $cogError), formatter: numberFormatter)
@@ -296,7 +297,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "speedometer")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("SOG")
                         Spacer()
                         TextField("", value: $speed, formatter: numberFormatter)
@@ -311,7 +312,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "barometer")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Barometer")
                         Spacer()
                         TextField("", value: $barometer, formatter: numberFormatter)
@@ -326,7 +327,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "thermometer")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Temperature")
                         Spacer()
                         TextField("", value: $temperature, formatter: numberFormatter)
@@ -341,7 +342,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "eye")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Visibility")
                         Spacer()
                         Picker("", selection: $visibility) {
@@ -356,7 +357,7 @@ struct EditLogEntryView: View {
                     HStack {
                         Image(systemName: "cloud")
                             .frame(width: 24)
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         Text("Cloud Cover")
                         Spacer()
                         Picker("", selection: $cloudCover) {
@@ -381,6 +382,7 @@ struct EditLogEntryView: View {
             .navigationTitle("Edit Entry")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
+            .tint(MaritimeColors.navy(for: colorScheme))
             .toolbar {
                 cancelButton
                 saveButton
@@ -443,7 +445,7 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "clock")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Text("Date & Time")
                 Spacer()
                 DatePicker("Time", 
@@ -472,7 +474,7 @@ struct EditLogEntryView: View {
                 HStack {
                     Image(systemName: "location.fill")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Position")
                     Spacer()
                 }
@@ -586,7 +588,7 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "arrow.up.left.circle")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Text("Direction")
                 Spacer()
                 Picker("", selection: $windDirection) {
@@ -601,7 +603,7 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Text("Speed")
                 Spacer()
                 TextField("", value: Binding(
@@ -624,7 +626,7 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "gauge")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Text("Force")
                 Spacer()
                 Picker("", selection: Binding(
@@ -641,6 +643,7 @@ struct EditLogEntryView: View {
                 .tint(.black)
             }
         }
+        .tint(MaritimeColors.navy(for: colorScheme))
     }
     
     private var sailsSection: some View {
@@ -648,32 +651,32 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "sailboat")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Main Sail", isOn: $sails.mainSail)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Jib", isOn: $sails.jib)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Genoa", isOn: $sails.genoa)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Spinnaker", isOn: $sails.spinnaker)
             }
             
             HStack {
                 Image(systemName: "minus.circle")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Text("Reefing")
                 Spacer()
                 HStack(spacing: 16) {
@@ -684,7 +687,9 @@ struct EditLogEntryView: View {
                     } label: {
                         Image(systemName: "minus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(sails.reefing > 0 ? .accentColor : .gray.opacity(0.3))
+                            .foregroundColor(sails.reefing > 0 ? 
+                                MaritimeColors.navy(for: colorScheme) : 
+                                MaritimeColors.navy(for: colorScheme).opacity(0.3))
                     }
                     .buttonStyle(BorderlessButtonStyle())
                     
@@ -700,7 +705,9 @@ struct EditLogEntryView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(sails.reefing < Sails.maxReefing ? .accentColor : .gray.opacity(0.3))
+                            .foregroundColor(sails.reefing < Sails.maxReefing ? 
+                                MaritimeColors.navy(for: colorScheme) : 
+                                MaritimeColors.navy(for: colorScheme).opacity(0.3))
                     }
                     .buttonStyle(BorderlessButtonStyle())
                 }
@@ -714,13 +721,14 @@ struct EditLogEntryView: View {
             HStack {
                 Image(systemName: "engine.combustion")
                     .frame(width: 24)
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Picker("", selection: $engineState) {
                     Text("Off").tag(EngineState.off)
                     Text("On").tag(EngineState.on)
                 }
                 .pickerStyle(.segmented)
             }
+            .tint(MaritimeColors.navy(for: colorScheme))
         }
     }
     
@@ -730,7 +738,7 @@ struct EditLogEntryView: View {
                 HStack(alignment: .top) {
                     Image(systemName: "note.text")
                         .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         .padding(.top, 10)
                     TextEditor(text: $notes)
                         .frame(height: 100)
@@ -772,6 +780,7 @@ struct EditLogEntryView: View {
             Button("Cancel") {
                 dismiss()
             }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         }
     }
     
@@ -781,6 +790,7 @@ struct EditLogEntryView: View {
                 Text("Save")
             }
             .disabled(magneticCourseError != nil || cogError != nil)
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         }
     }
     
@@ -788,11 +798,13 @@ struct EditLogEntryView: View {
         ToolbarItemGroup(placement: .keyboard) {
             Button(action: moveToPreviousField) {
                 Image(systemName: "chevron.up")
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
             .disabled(!canMovePrevious)
             
             Button(action: moveToNextField) {
                 Image(systemName: "chevron.down")
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
             .disabled(!canMoveNext)
             
@@ -801,6 +813,7 @@ struct EditLogEntryView: View {
             Button("Done") {
                 focusedField = nil
             }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         }
     }
     

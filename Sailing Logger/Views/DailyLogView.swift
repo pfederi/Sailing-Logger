@@ -30,6 +30,7 @@ struct DailyLogView: View {
     @StateObject private var tileManager = OpenSeaMapTileManager()
     @State private var shareItems: [Any] = []
     @State private var selectedEntryId: UUID?
+    @Environment(\.colorScheme) var colorScheme
     
     private var routeCoordinates: [Coordinates] {
         return entries.map { $0.coordinates }
@@ -56,7 +57,7 @@ struct DailyLogView: View {
                         selectedEntryId: $selectedEntryId
                     )
                     .frame(height: geometry.size.height * 0.6)
-                    .background(Color.white)
+                    .background(MaritimeColors.background(for: colorScheme))
                     .clipped()
                 }
             }
@@ -68,6 +69,7 @@ struct DailyLogView: View {
                         createAndShareSnapshot()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     }
                     .disabled(isGeneratingScreenshot)
                 }
@@ -81,9 +83,9 @@ struct DailyLogView: View {
                 VStack {
                     ProgressView()
                         .scaleEffect(1.5)
-                        .tint(.white)
+                        .tint(MaritimeColors.background(for: colorScheme))
                     Text("Generating Image...")
-                        .foregroundColor(.white)
+                        .foregroundColor(MaritimeColors.background(for: colorScheme))
                         .padding(.top, 10)
                         .font(.headline)
                         .multilineTextAlignment(.center)
@@ -91,7 +93,7 @@ struct DailyLogView: View {
                 .frame(width: 150, height: 150)
                 .background(
                     RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.gray.opacity(0.7))
+                        .fill(MaritimeColors.navy(for: colorScheme).opacity(0.7))
                 )
                 .position(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2)
             }
@@ -392,6 +394,8 @@ struct LogEntriesTableView: View {
 }
 
 struct LogTableHeaderView: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         HStack(spacing: 0) {
             Text("Time").frame(width: 80, alignment: .leading)
@@ -414,7 +418,7 @@ struct LogTableHeaderView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color.gray.opacity(0.2))
+        .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
         .font(.system(size: 14, weight: .bold))
     }
 }
@@ -423,6 +427,7 @@ struct LogEntryRowView: View {
     let entry: LogEntry
     let isSelected: Bool
     let isEvenRow: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack(spacing: 0) {
@@ -465,7 +470,9 @@ struct LogEntryRowView: View {
         .padding(.vertical, 10)
         .background(
             Rectangle()
-                .fill(isSelected ? Color.blue.opacity(0.1) : (isEvenRow ? Color.clear : Color.gray.opacity(0.05)))
+                .fill(isSelected ? 
+                      MaritimeColors.navy(for: colorScheme).opacity(0.1) : 
+                      (isEvenRow ? Color.clear : MaritimeColors.navy(for: colorScheme).opacity(0.05)))
         )
         .font(.system(size: 13))
     }

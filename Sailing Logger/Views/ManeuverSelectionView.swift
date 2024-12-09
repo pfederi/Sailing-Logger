@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ManeuverSelectionView: View {
     @Binding var selectedManeuver: Maneuver?
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         List(Maneuver.allCases, id: \.self) { maneuver in
@@ -13,11 +14,12 @@ struct ManeuverSelectionView: View {
                     Spacer()
                     if selectedManeuver == maneuver {
                         Image(systemName: "checkmark")
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     }
                 }
             }
             .foregroundColor(.primary)
         }
+        .tint(MaritimeColors.navy(for: colorScheme))
     }
 } 

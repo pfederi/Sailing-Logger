@@ -15,140 +15,34 @@ struct SettingsView: View {
     @State private var forceUpdate = UUID()  // Neuer State für Force Update
     @State private var showingSuccessAlert = false
     @State private var successMessage = ""
-    
-    private func showDeleteConfirmation(for region: String) {
-        regionToDelete = region
-        showingDeleteConfirmation = true
-    }
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationView {
-            Form {
-                AppearanceSection(themeManager: themeManager)
-                
-                WeatherSection(themeManager: themeManager)
-                
-                Section("OpenSeaMap Tiles") {
-                    ForEach(tileManager.availableRegions, id: \.self) { region in
-                        HStack {
-                            Text(region.capitalized)
-                            Spacer()
-                            if tileManager.isPreparing && region == tileManager.currentlyDownloading {
-                                Text("Preparing download...")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            } else if tileManager.isDownloading {
-                                if region == tileManager.currentlyDownloading {
-                                    VStack(alignment: .trailing) {
-                                        ProgressView(value: tileManager.downloadProgress)
-                                            .progressViewStyle(.linear)
-                                            .frame(width: 100)
-                                        HStack {
-                                            Text("\(ByteCountFormatter.string(fromByteCount: tileManager.downloadedBytes, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: tileManager.totalBytes, countStyle: .file))")
-                                            if let timeRemaining = tileManager.estimatedTimeRemaining {
-                                                Text("(\(Int(timeRemaining))s remaining)")
-                                            }
-                                        }
-                                        .font(.caption)
-                                        
-                                        Button("Cancel") {
-                                            tileManager.cancelDownload()
-                                        }
-                                        .font(.caption)
-                                        .foregroundColor(.red)
-                                    }
-                                } else if tileManager.isFileDownloaded(region) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                } else {
-                                    Image(systemName: "arrow.down.circle")
-                                        .foregroundColor(.gray)
-                                }
-                            } else {
-                                if tileManager.isFileDownloaded(region) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                } else {
-                                    Button(action: {
-                                        Task {
-                                            try? await tileManager.downloadTiles(for: region)
-                                        }
-                                    }) {
-                                        Image(systemName: "arrow.down.circle")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            let region = tileManager.availableRegions[index]
-                            if tileManager.isFileDownloaded(region) {
-                                showDeleteConfirmation(for: region)
-                            }
-                        }
-                    }
-                    
-                    Link("Not sure which map to download? Find information about map coverage here",
-                         destination: URL(string: "https://wiki.openstreetmap.org/wiki/MBTiles")!)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                .confirmationDialog(
-                    "Delete Map",
-                    isPresented: $showingDeleteConfirmation,
-                    presenting: regionToDelete
-                ) { region in
-                    Button("Delete \(region.capitalized)", role: .destructive) {
-                        tileManager.deleteTiles(for: region)
-                    }
-                } message: { region in
-                    Text("Are you sure you want to delete the map for \(region.capitalized)?")
-                }
-                
-                DataManagementSection(logStore: logStore, voyageStore: voyageStore)
-                
-                AboutSection()
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
+            SettingsFormContent(
+                themeManager: themeManager,
+                logStore: logStore,
+                tileManager: tileManager,
+                voyageStore: voyageStore,
+                showingDeleteConfirmation: $showingDeleteConfirmation,
+                regionToDelete: $regionToDelete,
+                showDownloadStartedAlert: $showDownloadStartedAlert,
+                dismiss: dismiss
+            )
         }
         .overlay {
             if showingSuccessAlert {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                    .overlay {
-                        VStack {
-                            Text("Import Successful")
-                                .font(.headline)
-                                .padding(.bottom, 4)
-                            Text(successMessage)
-                                .multilineTextAlignment(.center)
-                            Button("OK") {
-                                showingSuccessAlert = false
-                                dismiss()
-                            }
-                            .padding(.top)
-                        }
-                        .padding()
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(10)
-                        .padding(40)
-                    }
+                SuccessOverlay(
+                    message: successMessage,
+                    showingSuccessAlert: $showingSuccessAlert,
+                    dismiss: dismiss
+                )
             }
         }
         .presentationDragIndicator(.visible)
         .preferredColorScheme(themeManager.storedColorScheme == "system" ? systemColorScheme : themeManager.colorScheme)
         .onChange(of: themeManager.storedColorScheme) { oldValue, newValue in
             if newValue == "system" {
-                // Erzwinge komplette Neuzeichnung der View
                 forceUpdate = UUID()
             }
             withAnimation {
@@ -157,11 +51,10 @@ struct SettingsView: View {
         }
         .onChange(of: systemColorScheme) { oldValue, newValue in
             if themeManager.storedColorScheme == "system" {
-                // Erzwinge komplette Neuzeichnung der View
                 forceUpdate = UUID()
             }
         }
-        .id(forceUpdate)  // View wird komplett neu erstellt wenn UUID sich ändert
+        .id(forceUpdate)
         .alert("Map Download Started", isPresented: $showDownloadStartedAlert) {
             Button("Continue Using App") {
                 dismiss()
@@ -178,6 +71,246 @@ struct SettingsView: View {
         }
         .onDisappear {
             tileManager.showDownloadStartedAlert = false
+        }
+    }
+}
+
+private struct SettingsFormContent: View {
+    @ObservedObject var themeManager: ThemeManager
+    @ObservedObject var logStore: LogStore
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @ObservedObject var voyageStore: VoyageStore
+    @Binding var showingDeleteConfirmation: Bool
+    @Binding var regionToDelete: String?
+    @Binding var showDownloadStartedAlert: Bool
+    let dismiss: DismissAction
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        Form {
+            AppearanceSection(themeManager: themeManager)
+            WeatherSection(themeManager: themeManager)
+            OpenSeaMapSection(
+                tileManager: tileManager,
+                showingDeleteConfirmation: $showingDeleteConfirmation,
+                regionToDelete: $regionToDelete
+            )
+            DataManagementSection(logStore: logStore, voyageStore: voyageStore)
+            AboutSection()
+        }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+        .tint(MaritimeColors.navy(for: colorScheme))
+    }
+}
+
+private struct SuccessOverlay: View {
+    let message: String
+    @Binding var showingSuccessAlert: Bool
+    let dismiss: DismissAction
+    
+    var body: some View {
+        Color.black.opacity(0.3)
+            .ignoresSafeArea()
+            .overlay {
+                VStack {
+                    Text("Import Successful")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    Text(message)
+                        .multilineTextAlignment(.center)
+                    Button("OK") {
+                        showingSuccessAlert = false
+                        dismiss()
+                    }
+                    .padding(.top)
+                }
+                .padding()
+                .background(Color(UIColor.systemBackground))
+                .cornerRadius(10)
+                .padding(40)
+            }
+    }
+}
+
+private struct OpenSeaMapSection: View {
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @Binding var showingDeleteConfirmation: Bool
+    @Binding var regionToDelete: String?
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        Section("OpenSeaMap Tiles") {
+            RegionsList(
+                tileManager: tileManager,
+                showingDeleteConfirmation: $showingDeleteConfirmation,
+                regionToDelete: $regionToDelete
+            )
+            
+            Link("Not sure which map to download? Find information about map coverage here",
+                 destination: URL(string: "https://wiki.openstreetmap.org/wiki/MBTiles")!)
+                .font(.caption)
+                .foregroundColor(MaritimeColors.navy(for: colorScheme))
+        }
+        .alert(
+            "Delete Map",
+            isPresented: $showingDeleteConfirmation,
+            actions: {
+                Button("Cancel", role: .cancel) { }
+                if let region = regionToDelete {
+                    Button("Delete \(region.capitalized)", role: .destructive) {
+                        tileManager.deleteTiles(for: region)
+                    }
+                }
+            },
+            message: {
+                if let region = regionToDelete {
+                    Text("Are you sure you want to delete the map for \(region.capitalized)?")
+                }
+            }
+        )
+    }
+    
+    private func showDeleteConfirmation(for region: String) {
+        regionToDelete = region
+        showingDeleteConfirmation = true
+    }
+}
+
+private struct RegionsList: View {
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @Binding var showingDeleteConfirmation: Bool
+    @Binding var regionToDelete: String?
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        ForEach(tileManager.availableRegions, id: \.self) { region in
+            RegionRow(
+                region: region,
+                tileManager: tileManager,
+                showDeleteConfirmation: showDeleteConfirmation(for:)
+            )
+        }
+        .onDelete { indexSet in
+            for index in indexSet {
+                let region = tileManager.availableRegions[index]
+                if tileManager.isFileDownloaded(region) {
+                    showDeleteConfirmation(for: region)
+                }
+            }
+        }
+    }
+    
+    private func showDeleteConfirmation(for region: String) {
+        regionToDelete = region
+        showingDeleteConfirmation = true
+    }
+}
+
+private struct RegionRow: View {
+    let region: String
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    let showDeleteConfirmation: (String) -> Void
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        HStack {
+            Text(region.capitalized)
+            Spacer()
+            if tileManager.isPreparing && region == tileManager.currentlyDownloading {
+                PreparingDownloadView()
+            } else if tileManager.isDownloading {
+                DownloadingView(region: region, tileManager: tileManager)
+            } else {
+                DownloadStatusView(region: region, tileManager: tileManager)
+            }
+        }
+    }
+}
+
+private struct PreparingDownloadView: View {
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        Text("Preparing download...")
+            .font(.caption)
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
+    }
+}
+
+private struct DownloadingView: View {
+    let region: String
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        Group {
+            if region == tileManager.currentlyDownloading {
+                DownloadProgressView(tileManager: tileManager)
+            } else if tileManager.isFileDownloaded(region) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else {
+                Image(systemName: "arrow.down.circle")
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
+            }
+        }
+    }
+}
+
+private struct DownloadProgressView: View {
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        VStack(alignment: .trailing) {
+            ProgressView(value: tileManager.downloadProgress)
+                .progressViewStyle(.linear)
+                .frame(width: 100)
+            HStack {
+                Text("\(ByteCountFormatter.string(fromByteCount: tileManager.downloadedBytes, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: tileManager.totalBytes, countStyle: .file))")
+                if let timeRemaining = tileManager.estimatedTimeRemaining {
+                    Text("(\(Int(timeRemaining))s remaining)")
+                }
+            }
+            .font(.caption)
+            
+            Button("Cancel") {
+                tileManager.cancelDownload()
+            }
+            .font(.caption)
+            .foregroundColor(.red)
+        }
+    }
+}
+
+private struct DownloadStatusView: View {
+    let region: String
+    @ObservedObject var tileManager: OpenSeaMapTileManager
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        Group {
+            if tileManager.isFileDownloaded(region) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else {
+                Button(action: {
+                    Task {
+                        try? await tileManager.downloadTiles(for: region)
+                    }
+                }) {
+                    Image(systemName: "arrow.down.circle")
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                }
+            }
         }
     }
 }
@@ -224,6 +357,7 @@ private struct DataManagementSection: View {
     @State private var showingBackupSuccessAlert = false
     @State private var showingImportSuccessAlert = false
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         Section("Data Management") {
@@ -439,6 +573,7 @@ private struct DataManagementSection: View {
             Button("OK", role: .cancel) {
                 dismiss()
             }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         } message: {
             Text("Data restored successfully")
         }
@@ -446,16 +581,19 @@ private struct DataManagementSection: View {
             Button("OK", role: .cancel) {
                 dismiss()
             }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         } message: {
             Text("Your data has been backed up successfully")
         }
         .alert("Import Error", isPresented: $showingImportError) {
             Button("OK", role: .cancel) { }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         } message: {
             Text(importErrorMessage)
         }
         .alert("Data Deleted", isPresented: $showingDeletedFeedback) {
             Button("OK", role: .cancel) { }
+            .foregroundColor(MaritimeColors.navy(for: colorScheme))
         } message: {
             Text("All voyages and log entries have been successfully deleted.")
         }
@@ -480,6 +618,8 @@ private struct DataManagementSection: View {
 }
 
 private struct AboutSection: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         return "Version \(version)"
@@ -490,11 +630,11 @@ private struct AboutSection: View {
             VStack(spacing: 8) {
                 Text(appVersion)
                     .font(.footnote)
-                    .foregroundColor(.gray)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 
                 Text("Created with ❤️ in Zurich with the sea in our heart. May you always have wind in your sails and a hand-width of water under your keel!")
                     .font(.footnote)
-                    .foregroundColor(.gray)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, alignment: .center)

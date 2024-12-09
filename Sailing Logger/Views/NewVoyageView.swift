@@ -6,6 +6,7 @@ struct KeyboardToolbar: UIViewRepresentable {
     let nextAction: () -> Void
     let isPreviousDisabled: Bool
     let isNextDisabled: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     func makeUIView(context: Context) -> UIToolbar {
         let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44))
@@ -15,15 +16,18 @@ struct KeyboardToolbar: UIViewRepresentable {
                                            target: context.coordinator,
                                            action: #selector(Coordinator.previousTapped))
         previousButton.isEnabled = !isPreviousDisabled
+        previousButton.tintColor = UIColor(MaritimeColors.navy(for: colorScheme))
         
         let nextButton = UIBarButtonItem(image: UIImage(systemName: "chevron.down"),
                                        style: .plain,
                                        target: context.coordinator,
                                        action: #selector(Coordinator.nextTapped))
         nextButton.isEnabled = !isNextDisabled
+        nextButton.tintColor = UIColor(MaritimeColors.navy(for: colorScheme))
         
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: context.coordinator, action: #selector(Coordinator.doneTapped))
+        doneButton.tintColor = UIColor(MaritimeColors.navy(for: colorScheme))
         
         toolbar.setItems([previousButton, nextButton, flexSpace, doneButton], animated: false)
         return toolbar
@@ -33,6 +37,11 @@ struct KeyboardToolbar: UIViewRepresentable {
         if let items = uiView.items {
             items[0].isEnabled = !isPreviousDisabled
             items[1].isEnabled = !isNextDisabled
+            
+            // Update tint colors
+            items.forEach { item in
+                item.tintColor = UIColor(MaritimeColors.navy(for: colorScheme))
+            }
         }
     }
     
@@ -69,11 +78,16 @@ struct KeyboardToolbar: UIViewRepresentable {
 
 struct CustomButtonStyle: ButtonStyle {
     var isEnabled: Bool
+    @Environment(\.colorScheme) var colorScheme
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(configuration.isPressed ? MaritimeColors.navy.opacity(0.8) : (isEnabled ? MaritimeColors.navy : Color.gray))
+            .background(
+                configuration.isPressed ? 
+                    MaritimeColors.navy(for: colorScheme).opacity(0.8) : 
+                    (isEnabled ? MaritimeColors.navy(for: colorScheme) : Color.gray)
+            )
             .foregroundColor(.white)
             .cornerRadius(10)
     }
@@ -81,6 +95,7 @@ struct CustomButtonStyle: ButtonStyle {
 
 struct NewVoyageView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var voyageStore: VoyageStore
     @ObservedObject var logStore: LogStore
     
@@ -118,13 +133,13 @@ struct NewVoyageView: View {
                 Section(header: Text("Voyage Details")) {
                     HStack {
                         Image(systemName: "tag")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         TextField("Voyage Name", text: $voyageName)
                             .focused($focusedField, equals: .voyageName)
                     }
                     HStack {
                         Image(systemName: "calendar")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                     }
                 }
@@ -132,13 +147,13 @@ struct NewVoyageView: View {
                 Section(header: Text("Boat Details")) {
                     HStack {
                         Image(systemName: "sailboat")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         TextField("Boat Type", text: $boatType)
                             .focused($focusedField, equals: .boatType)
                     }
                     HStack {
                         Image(systemName: "pencil.and.scribble")
-                            .foregroundColor(MaritimeColors.navy)
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         TextField("Boat Name", text: $boatName)
                             .focused($focusedField, equals: .boatName)
                     }
@@ -173,7 +188,7 @@ struct NewVoyageView: View {
                             Spacer()
                         }
                     }
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(colorScheme == .dark ? .black : MaritimeColors.navy(for: colorScheme))
                     .frame(maxWidth: .infinity, minHeight: 50)
                     .background(Color.white)
                     .padding(.horizontal, -20)

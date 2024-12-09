@@ -7,6 +7,7 @@ struct EditingCrew: Identifiable {
 
 struct EditVoyageView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var voyageStore: VoyageStore
     let voyage: Voyage
     
@@ -59,6 +60,7 @@ struct EditVoyageView: View {
             }
             .navigationTitle("Edit Voyage")
             .navigationBarTitleDisplayMode(.inline)
+            .tint(MaritimeColors.navy(for: colorScheme))
             .toolbar { toolbarItems }
             .sheet(item: $editingCrew) { crew in
                 NavigationView {
@@ -74,11 +76,13 @@ struct EditVoyageView: View {
                             Button("Done") {
                                 editingCrew = nil
                             }
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         }
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button("Cancel") {
                                 editingCrew = nil
                             }
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                         }
                     }
                 }
@@ -100,13 +104,13 @@ struct EditVoyageView: View {
             Section(header: Text("Voyage Details")) {
                 HStack {
                     Image(systemName: "tag")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     TextField("Voyage Name", text: $name)
                 }
                 
                 HStack {
                     Image(systemName: "calendar")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text(voyage.startDate.formatted(date: .long, time: .shortened))
                         .foregroundColor(.secondary)
                 }
@@ -115,13 +119,13 @@ struct EditVoyageView: View {
             Section(header: Text("Boat Details")) {
                 HStack {
                     Image(systemName: "sailboat")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     TextField("Boat Type", text: $boatType)
                 }
                 
                 HStack {
                     Image(systemName: "pencil.and.scribble")
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     TextField("Boat Name", text: $boatName)
                 }
             }
@@ -181,6 +185,7 @@ struct EditVoyageView: View {
                 showingAddCrew = true 
             }) {
                 Label("Add Crew Member", systemImage: "person.badge.plus")
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
         }
     }
@@ -191,13 +196,15 @@ struct EditVoyageView: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
                     saveChanges()
-                    dismiss()  // Nur hier die View schließen
+                    dismiss()
                 }
                 .fontWeight(.semibold)
+                .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
         }
     }
@@ -205,6 +212,7 @@ struct EditVoyageView: View {
 
 struct EditCrewMemberView: View {
     @Binding var crew: [CrewMember]
+    @Environment(\.colorScheme) var colorScheme
     let index: Int
     let hasSkipper: Bool
     
@@ -225,7 +233,9 @@ struct EditCrewMemberView: View {
                     .disabled(crew.contains { $0.role == .secondSkipper } && crew[index].role != .secondSkipper)
                 Text(CrewRole.crew.rawValue).tag(CrewRole.crew)
             }
+            .tint(MaritimeColors.navy(for: colorScheme))
         }
+        .tint(MaritimeColors.navy(for: colorScheme))
     }
     
     private func updateName(_ name: String) {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SplashScreenView: View {
     @State private var isActive = false
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         ZStack {
@@ -19,15 +20,16 @@ struct SplashScreenView: View {
                 VStack(spacing: 20) {
                     Image(systemName: "helm")
                         .font(.system(size: 80))
-                        .foregroundColor(MaritimeColors.navy)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     
                     Text("Sailing Logger")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     
                     Text("Your digital logbook")
                         .font(.title3)
-                        .foregroundColor(.black)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                 }
                 .scaleEffect(isActive ? 1.1 : 1.0)
                 .opacity(isActive ? 0 : 1)

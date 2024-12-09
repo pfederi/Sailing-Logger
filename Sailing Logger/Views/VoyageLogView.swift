@@ -45,6 +45,7 @@ struct VoyageLogView: View {
     @State private var isGeneratingScreenshot = false
     @State private var shareItems: [Any] = []
     @State private var selectedEntryId: UUID?
+    @Environment(\.colorScheme) var colorScheme
     
     private var routeCoordinates: [Coordinates] {
         return voyage.logEntries.map { $0.coordinates }
@@ -96,6 +97,7 @@ struct VoyageLogView: View {
                         createAndShareSnapshot()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     }
                     .disabled(isGeneratingScreenshot)
                 }
@@ -378,6 +380,7 @@ struct VoyageHeaderView: View {
 struct StatsItem: View {
     let title: String
     let value: String
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack {
@@ -386,6 +389,7 @@ struct StatsItem: View {
                 .foregroundColor(.secondary)
             Text(value)
                 .font(.headline)
+                .foregroundColor(MaritimeColors.navy(for: colorScheme))
         }
     }
 }

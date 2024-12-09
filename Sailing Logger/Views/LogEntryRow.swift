@@ -3,6 +3,7 @@ import CoreLocation
 
 struct LogEntryRow: View {
     @ObservedObject var entry: LogEntry
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack(alignment: .center, spacing: 20) {
@@ -10,12 +11,12 @@ struct LogEntryRow: View {
             if entry.engineState == .on {
                 Image(systemName: "engine.combustion")
                     .font(.system(size: 20))
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     .frame(width: 32)
             } else {
                 Image(systemName: "sailboat")
                     .font(.system(size: 20))
-                    .foregroundColor(MaritimeColors.navy)
+                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     .frame(width: 32)
             }
             
@@ -43,7 +44,7 @@ struct LogEntryRow: View {
                         if entry.distance > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.triangle.swap")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.1f nm", entry.distance))
                             }
                         }
@@ -51,7 +52,7 @@ struct LogEntryRow: View {
                         if entry.magneticCourse > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.0f°", entry.magneticCourse))
                             }
                         }
@@ -59,7 +60,7 @@ struct LogEntryRow: View {
                         if entry.courseOverGround > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "safari.fill")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.0f°", entry.courseOverGround))
                             }
                         }
@@ -67,7 +68,7 @@ struct LogEntryRow: View {
                         if entry.speed > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "speedometer")
-                                    .foregroundColor(MaritimeColors.navy)
+                                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
                                 Text(String(format: "%.1f kts", entry.speed))
                             }
                         }
@@ -80,13 +81,13 @@ struct LogEntryRow: View {
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.up.left.circle")
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             Text(entry.wind.direction.rawValue)
                         }
                         
                         HStack(spacing: 4) {
                             Image(systemName: "wind")
-                                .foregroundColor(MaritimeColors.navy)
+                                .foregroundColor(MaritimeColors.navy(for: colorScheme))
                             Text(String(format: "%.1f kts", entry.wind.speedKnots))
                         }
                     }
@@ -101,7 +102,7 @@ struct LogEntryRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
                                 .cornerRadius(8)
                         }
                         if entry.sails.jib {
@@ -109,7 +110,7 @@ struct LogEntryRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
                                 .cornerRadius(8)
                         }
                         if entry.sails.genoa {
@@ -117,7 +118,7 @@ struct LogEntryRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
                                 .cornerRadius(8)
                         }
                         if entry.sails.spinnaker {
@@ -125,7 +126,7 @@ struct LogEntryRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
                                 .cornerRadius(8)
                         }
                         if entry.sails.reefing > 0 {
@@ -133,7 +134,7 @@ struct LogEntryRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(MaritimeColors.navy(for: colorScheme).opacity(0.1))
                                 .cornerRadius(8)
                         }
                     }
@@ -147,7 +148,6 @@ struct LogEntryRow: View {
             }
         }
         .onAppear {
-            // Starten Sie das Geocoding sofort beim Erscheinen der View
             Task {
                 await entry.fetchLocationDescription()
             }

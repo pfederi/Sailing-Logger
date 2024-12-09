@@ -6,6 +6,7 @@ struct SlideToEndButton: View {
     
     @State private var offset: CGFloat = 0
     @State private var width: CGFloat = 0
+    @Environment(\.colorScheme) var colorScheme
     
     private let buttonHeight: CGFloat = 72
     private let capsuleSize: CGFloat = 64
@@ -15,20 +16,20 @@ struct SlideToEndButton: View {
         ZStack(alignment: .leading) {
             // Background
             RoundedRectangle(cornerRadius: buttonHeight/2)
-                .fill(Color.white)
+                .fill(Color(uiColor: .systemBackground))
                 .overlay(
                     Text(text)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: buttonHeight/2)
-                        .strokeBorder(Color.white, lineWidth: 2)
+                        .strokeBorder(Color(uiColor: .systemBackground), lineWidth: 2)
                 )
             
             // Expanding Red Background
             ZStack(alignment: .trailing) {
                 Capsule()
-                    .fill(MaritimeColors.coral)
+                    .fill(MaritimeColors.coral(for: colorScheme))
                     .frame(width: offset + capsuleSize)
                     .padding(4)
                 
