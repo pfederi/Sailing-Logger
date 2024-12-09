@@ -30,7 +30,7 @@ struct MainToolbarModifier: ViewModifier {
                                 logStore: logStore
                             )
                         } label: {
-                            Text("Archive")
+                            Label("Archive", systemImage: "archivebox")
                                 .foregroundColor(MaritimeColors.navy)
                         }
                     }
