@@ -14,8 +14,59 @@ struct VoyageArchiveView: View {
         voyageStore.voyages.filter { !$0.isActive }.reversed()
     }
     
+    private var totalNauticalMiles: Double {
+        archivedVoyages.reduce(0.0) { total, voyage in
+            total + (voyage.logEntries.map({ $0.distance }).max() ?? 0.0)
+        }
+    }
+    
+    private var totalDays: Int {
+        let calendar = Calendar.current
+        return archivedVoyages.reduce(0) { total, voyage in
+            if let lastEntry = voyage.logEntries.max(by: { $0.timestamp < $1.timestamp }) {
+                let days = calendar.dateComponents([.day], from: voyage.startDate, to: lastEntry.timestamp).day ?? 0
+                return total + max(1, days)
+            }
+            return total
+        }
+    }
+    
     var body: some View {
         List {
+            Section {
+                HStack {
+                    Spacer()
+                    VStack {
+                        Text("\(archivedVoyages.count)")
+                            .font(.title.bold())
+                        Text("Voyages")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    
+                    VStack {
+                        Text(String(format: "%.1f", totalNauticalMiles))
+                            .font(.title.bold())
+                        Text("Nautical Miles")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    
+                    VStack {
+                        Text("\(totalDays)")
+                            .font(.title.bold())
+                        Text("Days at Sea")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            }
+            
+            // Existing Voyages List
             ForEach(archivedVoyages, id: \.id) { voyage in
                 VoyageArchiveRow(
                     voyage: voyage,
@@ -65,7 +116,11 @@ private struct VoyageArchiveRow: View {
     @ObservedObject var logStore: LogStore
     
     private var lastEntry: LogEntry? {
-        voyage.logEntries.sorted { $0.timestamp > $1.timestamp }.first
+        voyage.logEntries.max(by: { $0.timestamp < $1.timestamp })
+    }
+    
+    private var endDate: Date {
+        lastEntry?.timestamp ?? voyage.startDate
     }
     
     var body: some View {
@@ -88,7 +143,7 @@ private struct VoyageArchiveRow: View {
                 HStack {
                     Text(voyage.startDate.formatted(date: .abbreviated, time: .omitted))
                     Text("→")
-                    Text(lastEntry?.timestamp.formatted(date: .abbreviated, time: .omitted) ?? "ongoing")
+                    Text(endDate.formatted(date: .abbreviated, time: .omitted))
                 }
                 .font(.subheadline)
                 .foregroundColor(.primary)
