@@ -138,8 +138,8 @@ struct NewLogEntryView: View {
         self.tileManager = tileManager
         self.themeManager = themeManager
         
-        let currentLocation = locationManager.currentLocation ?? Coordinates(latitude: 0, longitude: 0)
-        _coordinates = State(initialValue: currentLocation)
+        let location = locationManager.currentLocation ?? locationManager.lastKnownLocation ?? Coordinates(latitude: 0, longitude: 0)
+        _coordinates = State(initialValue: location)
         
         if let location = locationManager.currentLocation {
             let (latDeg, latMin) = abs(location.latitude).splitToDegreesAndMinutes()
@@ -336,6 +336,15 @@ struct NewLogEntryView: View {
                     in: ...maxDate,
                     displayedComponents: [.date, .hourAndMinute]
                 )
+            }
+            
+            if coordinates.latitude == 0 && coordinates.longitude == 0 {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("Waiting for location...")
+                        .foregroundColor(.orange)
+                }
             }
             
             coordinatesSection
@@ -896,6 +905,33 @@ struct NewLogEntryView: View {
         }
         .onAppear {
             fetchWeatherData()
+            // Aktualisiere Koordinaten wenn verfügbar
+            if let location = locationManager.currentLocation {
+                coordinates = location
+                let (latDeg, latMin) = abs(location.latitude).splitToDegreesAndMinutes()
+                let (lonDeg, lonMin) = abs(location.longitude).splitToDegreesAndMinutes()
+                
+                latitudeDegrees = latDeg
+                latitudeMinutes = latMin
+                longitudeDegrees = lonDeg
+                longitudeMinutes = lonMin
+                latitudeDirection = location.latitude >= 0
+                longitudeDirection = location.longitude >= 0
+            }
+        }
+        .onChange(of: locationManager.currentLocation) { oldValue, newValue in
+            if let location = newValue {
+                coordinates = location
+                let (latDeg, latMin) = abs(location.latitude).splitToDegreesAndMinutes()
+                let (lonDeg, lonMin) = abs(location.longitude).splitToDegreesAndMinutes()
+                
+                latitudeDegrees = latDeg
+                latitudeMinutes = latMin
+                longitudeDegrees = lonDeg
+                longitudeMinutes = lonMin
+                latitudeDirection = location.latitude >= 0
+                longitudeDirection = location.longitude >= 0
+            }
         }
     }
 }
