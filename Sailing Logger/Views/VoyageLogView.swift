@@ -193,35 +193,50 @@ struct VoyageLogView: View {
                 return
             }
             
-            // Zeichne die Route auf den Snapshot
+            // Zeichne die Punkte auf den Snapshot
             UIGraphicsBeginImageContextWithOptions(snapshot.image.size, true, snapshot.image.scale)
             snapshot.image.draw(at: .zero)
             
             if let context = UIGraphicsGetCurrentContext() {
                 let points = coordinates.map { snapshot.point(for: $0) }
                 
-                // Zeichne die Route
-                context.setLineWidth(2.0)
-                context.setStrokeColor(UIColor.blue.cgColor)
-                
+                // Zeichne jeden Punkt der Route mit Zeitstempel
                 for (index, point) in points.enumerated() {
+                    // Wähle Farbe basierend auf Position
                     if index == 0 {
-                        context.move(to: point)
+                        context.setFillColor(UIColor.green.cgColor)
+                    } else if index == points.count - 1 {
+                        context.setFillColor(UIColor.red.cgColor)
                     } else {
-                        context.addLine(to: point)
+                        context.setFillColor(UIColor.systemBlue.cgColor)
                     }
-                }
-                context.strokePath()
-                
-                // Zeichne Start- und Endpunkte
-                if let firstPoint = points.first {
-                    context.setFillColor(UIColor.green.cgColor)
-                    context.fillEllipse(in: CGRect(x: firstPoint.x - 5, y: firstPoint.y - 5, width: 10, height: 10))
-                }
-                
-                if let lastPoint = points.last {
-                    context.setFillColor(UIColor.red.cgColor)
-                    context.fillEllipse(in: CGRect(x: lastPoint.x - 5, y: lastPoint.y - 5, width: 10, height: 10))
+                    
+                    // Zeichne den Punkt
+                    context.fillEllipse(in: CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8))
+                    
+                    // Füge Zeitstempel hinzu
+                    let time = voyage.logEntries[index].timestamp.formatted(date: .omitted, time: .shortened)
+                    let attributes: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 10),
+                        .foregroundColor: UIColor.black
+                    ]
+                    
+                    // Erstelle weißen Hintergrund für bessere Lesbarkeit
+                    let timeSize = (time as NSString).size(withAttributes: attributes)
+                    let backgroundRect = CGRect(
+                        x: point.x + 8,
+                        y: point.y - timeSize.height/2,
+                        width: timeSize.width + 4,
+                        height: timeSize.height
+                    )
+                    context.setFillColor(UIColor.white.withAlphaComponent(0.8).cgColor)
+                    context.fill(backgroundRect)
+                    
+                    // Zeichne den Text
+                    (time as NSString).draw(
+                        at: CGPoint(x: point.x + 10, y: point.y - timeSize.height/2),
+                        withAttributes: attributes
+                    )
                 }
             }
             

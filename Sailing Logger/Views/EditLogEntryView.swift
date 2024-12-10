@@ -653,24 +653,28 @@ struct EditLogEntryView: View {
                     .frame(width: 24)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Main Sail", isOn: $sails.mainSail)
+                    .disabled(engineState == .on)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Jib", isOn: $sails.jib)
+                    .disabled(engineState == .on)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Genoa", isOn: $sails.genoa)
+                    .disabled(engineState == .on)
             }
             HStack {
                 Image(systemName: "wind")
                     .frame(width: 24)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 Toggle("Spinnaker", isOn: $sails.spinnaker)
+                    .disabled(engineState == .on)
             }
             
             HStack {
@@ -692,6 +696,7 @@ struct EditLogEntryView: View {
                                 MaritimeColors.navy(for: colorScheme).opacity(0.3))
                     }
                     .buttonStyle(BorderlessButtonStyle())
+                    .disabled(engineState == .on)
                     
                     Text("\(sails.reefing)")
                         .font(.title3)
@@ -710,6 +715,7 @@ struct EditLogEntryView: View {
                                 MaritimeColors.navy(for: colorScheme).opacity(0.3))
                     }
                     .buttonStyle(BorderlessButtonStyle())
+                    .disabled(engineState == .on)
                 }
                 .padding(.vertical, 4)
             }
@@ -722,13 +728,24 @@ struct EditLogEntryView: View {
                 Image(systemName: "engine.combustion")
                     .frame(width: 24)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
-                Picker("", selection: $engineState) {
+                Picker("Engine", selection: $engineState) {
                     Text("Off").tag(EngineState.off)
                     Text("On").tag(EngineState.on)
                 }
                 .pickerStyle(.segmented)
+                .onChange(of: engineState) { _, newValue in
+                    if newValue == .on {
+                        withAnimation {
+                            sails.mainSail = false
+                            sails.jib = false
+                            sails.genoa = false
+                            sails.spinnaker = false
+                            sails.reefing = 0
+                            sailState = .none
+                        }
+                    }
+                }
             }
-            .tint(MaritimeColors.navy(for: colorScheme))
         }
     }
     

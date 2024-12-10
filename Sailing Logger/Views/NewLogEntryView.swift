@@ -36,7 +36,20 @@ struct NewLogEntryView: View {
     @State private var windSpeedBft: Int = 0
     @State private var sailState: SailState = .none
     @State private var speed: Double? = nil
-    @State private var engineState: EngineState = .off
+    @State private var engineState: EngineState = .off {
+        didSet {
+            if engineState == .on {
+                withAnimation {
+                    sails.mainSail = false
+                    sails.jib = false
+                    sails.genoa = false
+                    sails.spinnaker = false
+                    sails.reefing = 0
+                    sailState = .none
+                }
+            }
+        }
+    }
     @State private var notes: String = ""
     @State private var isLoadingWeather = false
     @State private var magneticCourseError: String? = nil
@@ -784,24 +797,28 @@ struct NewLogEntryView: View {
                         .frame(width: 24)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Main Sail", isOn: $sails.mainSail)
+                        .disabled(engineState == .on)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Jib", isOn: $sails.jib)
+                        .disabled(engineState == .on)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Genoa", isOn: $sails.genoa)
+                        .disabled(engineState == .on)
                 }
                 HStack {
                     Image(systemName: "wind")
                         .frame(width: 24)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Toggle("Spinnaker", isOn: $sails.spinnaker)
+                        .disabled(engineState == .on)
                 }
                 
                 HStack {
@@ -852,6 +869,18 @@ struct NewLogEntryView: View {
                         Text("On").tag(EngineState.on)
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: engineState) { _, newValue in
+                        if newValue == .on {
+                            withAnimation {
+                                sails.mainSail = false
+                                sails.jib = false
+                                sails.genoa = false
+                                sails.spinnaker = false
+                                sails.reefing = 0
+                                sailState = .none
+                            }
+                        }
+                    }
                 }
             }
             
