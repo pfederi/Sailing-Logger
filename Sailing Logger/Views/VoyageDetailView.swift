@@ -19,7 +19,6 @@ struct VoyageDetailView: View {
     @State private var importSuccessMessage = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var exportURL: URL?
     @State private var isPreparingExport = false
     @Environment(\.colorScheme) var colorScheme
     
@@ -306,7 +305,6 @@ struct VoyageDetailView: View {
     private struct ImportExportSection: View {
         let currentVoyage: Voyage
         @Binding var showingFilePicker: Bool
-        @Binding var showingShareSheet: Bool
         @Binding var isPreparingExport: Bool
         @Environment(\.colorScheme) var colorScheme
         let importAction: () -> Void
@@ -412,7 +410,6 @@ struct VoyageDetailView: View {
             ImportExportSection(
                 currentVoyage: currentVoyage,
                 showingFilePicker: $showingFilePicker,
-                showingShareSheet: $showingShareSheet,
                 isPreparingExport: $isPreparingExport,
                 importAction: importVoyageData,
                 exportAction: exportVoyageData
@@ -458,13 +455,6 @@ struct VoyageDetailView: View {
         .sheet(isPresented: $showingFilePicker) {
             DocumentPicker { data in
                 handleImportedData(data)
-            }
-        }
-        .sheet(isPresented: $showingShareSheet) {
-            if let url = exportURL {
-                ActivityViewController(activityItems: [url])
-            } else {
-                Text("Error preparing export")
             }
         }
         .alert("Import Successful", isPresented: $showingImportSuccessAlert) {
@@ -617,69 +607,80 @@ struct VoyageDetailView: View {
         return nilCount
     }
     
+    private func prepareFileForExport() async throws -> URL {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let data = try encoder.encode(currentVoyage)
+        
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileName = "voyage_export_\(UUID().uuidString).json"
+        let fileURL = documentsPath.appendingPathComponent(fileName)
+        
+        try data.write(to: fileURL, options: .atomic)
+        
+        // Verify file exists and is readable
+        guard FileManager.default.fileExists(atPath: fileURL.path),
+              let _ = try? Data(contentsOf: fileURL) else {
+            throw NSError(domain: "", code: -1, 
+                         userInfo: [NSLocalizedDescriptionKey: "File verification failed"])
+        }
+        
+        try (fileURL as NSURL).setResourceValue(true, forKey: .isReadableKey)
+        
+        return fileURL
+    }
+    
     private func exportVoyageData() {
-        do {
-            isPreparingExport = true
-            print("\n=== Starting Export ===")
-            
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            encoder.dateEncodingStrategy = .iso8601
-            
-            let data = try encoder.encode(currentVoyage)
-            print("Debug - Data size: \(data.count) bytes")
-            
-            // Erstelle temporäre Datei im Hintergrund
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let tempFileURL = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("voyage_export_\(UUID().uuidString).json")
-                    
-                    try data.write(to: tempFileURL)
-                    print("Debug - File written to: \(tempFileURL.path)")
-                    
-                    // Überprüfe, ob die Datei existiert und lesbar ist
-                    if FileManager.default.fileExists(atPath: tempFileURL.path),
-                       let _ = try? Data(contentsOf: tempFileURL) {
-                        DispatchQueue.main.async {
-                            self.exportURL = tempFileURL
-                            self.isPreparingExport = false
-                            self.showingShareSheet = true
-                            print("Debug - File verified and ready for sharing")
-                        }
-                    } else {
-                        throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "File verification failed"])
+        guard !isPreparingExport else { return }
+        isPreparingExport = true
+        
+        Task {
+            do {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                encoder.dateEncodingStrategy = .iso8601
+                
+                let data = try encoder.encode(currentVoyage)
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let fileName = "voyage_export_\(UUID().uuidString).json"
+                let fileURL = documentsPath.appendingPathComponent(fileName)
+                
+                try data.write(to: fileURL, options: .atomic)
+                
+                await MainActor.run {
+                    if let windowScene = UIApplication.shared.connectedScenes
+                        .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                       let view = windowScene.windows.first?.rootViewController?.view {
+                        SharePresenter.present(url: fileURL, from: view)
                     }
-                } catch {
-                    DispatchQueue.main.async {
-                        print("❌ Error writing file: \(error)")
-                        self.alertMessage = "Export failed: \(error.localizedDescription)"
-                        self.showAlert = true
-                        self.isPreparingExport = false
-                    }
+                    self.isPreparingExport = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.alertMessage = "Export failed: \(error.localizedDescription)"
+                    self.showAlert = true
+                    self.isPreparingExport = false
                 }
             }
-            
-        } catch {
-            print("❌ Error encoding data: \(error)")
-            alertMessage = "Export failed: \(error.localizedDescription)"
-            showAlert = true
-            isPreparingExport = false
         }
     }
 }
 
-// Separate ActivityViewController für das Sharing
-struct ActivityViewController: UIViewControllerRepresentable {
-    let activityItems: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(
-            activityItems: activityItems,
+// Neue Helper-Klasse für die Präsentation
+class SharePresenter: NSObject {
+    static func present(url: URL, from view: UIView) {
+        let activityVC = UIActivityViewController(
+            activityItems: [url],
             applicationActivities: nil
         )
-        return controller
+        
+        // Verwende die neue API für iOS 15+
+        if let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            rootViewController.present(activityVC, animated: true)
+        }
     }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 } 
