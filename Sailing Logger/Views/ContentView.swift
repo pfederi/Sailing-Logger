@@ -110,43 +110,47 @@ struct ContentView: View {
                     // Tracking Status Bar - nur anzeigen wenn Auto-Tracking aktiviert ist
                     if UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
                         HStack(spacing: 12) {
-                            if activeVoyage.isTracking {
-                                Image(systemName: "location.fill")
-                                    .foregroundColor(.blue)
-                                Text("Location tracking active")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Button {
-                                    withAnimation {
-                                        voyageStore.updateVoyageTracking(activeVoyage, isTracking: false)
-                                    }
-                                } label: {
-                                    Text("Stop")
-                                        .font(.subheadline)
+                            if let activeVoyage = voyageStore.activeVoyage {
+                                if locationManager.isTrackingActive {
+                                    Image(systemName: "location.fill")
                                         .foregroundColor(.blue)
-                                }
-                            } else {
-                                Image(systemName: "location.slash.fill")
-                                    .foregroundColor(.secondary)
-                                Text("Location tracking stopped")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Button {
-                                    withAnimation {
-                                        voyageStore.updateVoyageTracking(activeVoyage, isTracking: true)
-                                    }
-                                } label: {
-                                    Text("Start")
+                                    Text("Location tracking active")
                                         .font(.subheadline)
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Button {
+                                        withAnimation {
+                                            voyageStore.updateVoyageTracking(activeVoyage, isTracking: false)
+                                            locationManager.stopBackgroundTracking()
+                                        }
+                                    } label: {
+                                        Text("Stop")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
+                                    }
+                                } else {
+                                    Image(systemName: "location.slash.fill")
+                                        .foregroundColor(.secondary)
+                                    Text("Location tracking stopped")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Button {
+                                        withAnimation {
+                                            voyageStore.updateVoyageTracking(activeVoyage, isTracking: true)
+                                            locationManager.startBackgroundTracking(interval: 10)
+                                        }
+                                    } label: {
+                                        Text("Start")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
+                                    }
                                 }
                             }
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
-                        .background(activeVoyage.isTracking ? Color.blue.opacity(0.1) : Color.secondary.opacity(0.1))
+                        .background(locationManager.isTrackingActive ? Color.blue.opacity(0.1) : Color.secondary.opacity(0.1))
                     }
                 }
             }

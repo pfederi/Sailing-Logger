@@ -8,6 +8,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentLocation: Coordinates?
     @Published var lastKnownLocation: Coordinates?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    @Published var isTrackingActive: Bool = false
     
     override init() {
         super.init()
@@ -42,8 +43,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    func startBackgroundTracking(interval: Int) {
+    func startBackgroundTracking(interval: Int = 0) {
         print("🚀 Starting background tracking with interval: \(interval) seconds")
+        isTrackingActive = true
         
         // Überprüfe zuerst die Berechtigung
         switch authorizationStatus {
@@ -92,6 +94,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func stopBackgroundTracking() {
         print("🛑 Stopping background tracking")
+        isTrackingActive = false
         
         // Stoppe Updates
         manager.stopUpdatingLocation()

@@ -126,7 +126,7 @@ struct VoyageDetailView: View {
     private struct LocationTrackingSection: View {
         let voyage: Voyage
         @ObservedObject var voyageStore: VoyageStore
-        let locationManager: LocationManager
+        @ObservedObject var locationManager: LocationManager
         @Environment(\.colorScheme) var colorScheme
         @State private var isTracking: Bool
         
