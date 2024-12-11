@@ -114,9 +114,14 @@ struct ContentView: View {
                                 if locationManager.isTrackingActive {
                                     Image(systemName: "location.fill")
                                         .foregroundColor(.blue)
-                                    Text("Location tracking active")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Location tracking active")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        Text("Current speed: \(String(format: "%.1f", locationManager.currentSpeed)) kts")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
+                                    }
                                     Spacer()
                                     Button {
                                         withAnimation {

@@ -9,6 +9,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var lastKnownLocation: Coordinates?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isTrackingActive: Bool = false
+    @Published var currentSpeed: Double = 0.0 // in Knoten
     
     override init() {
         super.init()
@@ -116,6 +117,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 latitude: location.coordinate.latitude,
                 longitude: location.coordinate.longitude
             )
+            
+            // Geschwindigkeit aktualisieren (m/s zu Knoten umrechnen)
+            // Negative Werte werden als 0 interpretiert
+            currentSpeed = max(0, location.speed * 1.94384)
             
             lastKnownLocation = currentLocation
             UserDefaults.standard.set(location.coordinate.latitude, forKey: "LastKnownLatitude")

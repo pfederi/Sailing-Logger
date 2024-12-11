@@ -180,6 +180,11 @@ private struct SettingsFormContent: View {
                     }
                 }
             }
+            
+            Text("Background location tracking is needed to automatically calculate distances between log entries and provide current speed data. All location data remains on your device and is not shared with any third parties.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.top, 4)
         }
     }
 }

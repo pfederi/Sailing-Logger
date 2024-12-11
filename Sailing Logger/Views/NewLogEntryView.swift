@@ -623,7 +623,8 @@ struct NewLogEntryView: View {
                 
                 if let calculatedDistance = calculatedDistance,
                    let lastTotal = logStore.entries.last?.distance,
-                   UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
+                   UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") &&
+                   locationManager.isTrackingActive {
                     Divider()
                     
                     HStack {
@@ -719,6 +720,13 @@ struct NewLogEntryView: View {
                         .frame(width: 24)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("SOG")
+                    if locationManager.isTrackingActive && speed == locationManager.currentSpeed {
+                        Text("GPS")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                            .baselineOffset(14)
+                            .padding(.leading, -4)
+                    }
                     Spacer()
                     TextField("", value: $speed, formatter: numberFormatter)
                         .keyboardType(.decimalPad)
@@ -726,6 +734,12 @@ struct NewLogEntryView: View {
                         .frame(width: 100)
                         .focused($focusedField, equals: .speed)
                     Text("kts")
+                }
+                .onAppear {
+                    // Set initial speed from locationManager only if tracking is active
+                    if speed == nil && locationManager.isTrackingActive {
+                        speed = locationManager.currentSpeed
+                    }
                 }
                 
                 HStack {
@@ -988,7 +1002,9 @@ struct NewLogEntryView: View {
             HStack {
                 Text("Fields marked with ")
                 + Text("API").foregroundColor(MaritimeColors.navy(for: colorScheme))
-                + Text(" are automatically filled with OpenWeather data when available.")
+                + Text(" are automatically filled with OpenWeather data and ")
+                + Text("GPS").foregroundColor(MaritimeColors.navy(for: colorScheme))
+                + Text(" with location data when available.")
             }
             .font(.caption)
             .listRowBackground(Color.clear)
