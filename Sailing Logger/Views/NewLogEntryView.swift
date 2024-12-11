@@ -155,6 +155,9 @@ struct NewLogEntryView: View {
         let location = locationManager.currentLocation ?? locationManager.lastKnownLocation ?? Coordinates(latitude: 0, longitude: 0)
         _coordinates = State(initialValue: location)
         
+        _distance = State(initialValue: nil)
+        _distanceString = State(initialValue: "")
+        
         if let location = locationManager.currentLocation {
             let (latDeg, latMin) = abs(location.latitude).splitToDegreesAndMinutes()
             let (lonDeg, lonMin) = abs(location.longitude).splitToDegreesAndMinutes()
@@ -337,6 +340,48 @@ struct NewLogEntryView: View {
         
         // Aktualisiere die coordinates Property nur bei gültigen Werten
         coordinates = Coordinates(latitude: latitude, longitude: longitude)
+    }
+    
+    private func useCalculatedDistance() {
+        print("useCalculatedDistance wurde aufgerufen")
+        
+        guard let lastEntry = logStore.entries.last else {
+            print("Keine letzte Position verfügbar")
+            return
+        }
+        
+        guard let currentLocation = locationManager.currentLocation else {
+            print("Keine aktuelle Position verfügbar")
+            return
+        }
+        
+        let lastLoc = CLLocation(
+            latitude: lastEntry.coordinates.latitude,
+            longitude: lastEntry.coordinates.longitude
+        )
+        let currentLoc = CLLocation(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+        )
+        
+        // Berechne die neue Teilstrecke in Metern
+        let distanceInMeters = currentLoc.distance(from: lastLoc)
+        // Konvertiere zu Seemeilen (1 nm = 1852m) und runde auf 2 Nachkommastellen
+        let newSegmentDistance = Double(round(distanceInMeters / 1852.0 * 100) / 100)
+        print("Neue Teilstrecke: \(newSegmentDistance) nm")
+        
+        // Hole die letzte Gesamtdistanz aus dem letzten LogEntry
+        let lastTotalDistance = lastEntry.distance
+        print("Letzte Gesamtdistanz: \(lastTotalDistance) nm")
+        
+        // Addiere die neue Teilstrecke zur letzten Gesamtdistanz
+        let updatedTotalDistance = Double(round((lastTotalDistance + newSegmentDistance) * 100) / 100)
+        print("Neue Gesamtdistanz: \(updatedTotalDistance) nm")
+        
+        // Setze den neuen Gesamtwert ins Eingabefeld
+        distanceString = String(format: "%.2f", updatedTotalDistance)
+        distance = updatedTotalDistance
+        print("Gesetzter String im Eingabefeld: \(distanceString)")
     }
     
     private var timeAndPositionSection: some View {
@@ -560,7 +605,8 @@ struct NewLogEntryView: View {
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                     Text("Distance")
                     Spacer()
-                    TextField("", text: $distanceString)
+                    TextField("", text: $distanceString, prompt: Text(String(format: "%.2f", logStore.entries.last?.distance ?? 0.0))
+                        .foregroundColor(.gray))
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 100)
@@ -576,18 +622,18 @@ struct NewLogEntryView: View {
                 }
                 
                 if let calculatedDistance = calculatedDistance,
+                   let lastTotal = logStore.entries.last?.distance,
                    UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
                     Divider()
                     
                     HStack {
                         Spacer()
                         Button {
-                            distanceString = String(format: "%.1f", calculatedDistance)
-                            distance = calculatedDistance
+                            useCalculatedDistance()
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.2.circlepath")
-                                Text("Use calculated distance (\(String(format: "%.1f", calculatedDistance))nm)")
+                                Text("Add GPS distance (\(String(format: "%.2f", calculatedDistance))nm) → \(String(format: "%.2f", lastTotal + calculatedDistance))nm")
                             }
                             .font(.footnote)
                             .foregroundColor(.blue)

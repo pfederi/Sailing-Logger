@@ -203,37 +203,37 @@ class LogStore: ObservableObject {
               let location = notification.userInfo?["location"] as? CLLocation else { return }
         
         if let lastLocation = lastTrackedLocation {
-            let distance = location.distance(from: lastLocation) / 1852 // Convert to nautical miles
+            let newSegmentDistance = location.distance(from: lastLocation) / 1852 // Convert to nautical miles
             
-            // Update the total distance for the current voyage
-            if let lastEntry = entries.last {
-                let newDistance = (lastEntry.distance) + distance
-                
-                // Create a new entry with the updated distance
-                let newEntry = LogEntry(
-                    timestamp: Date(),
-                    coordinates: Coordinates(
-                        latitude: location.coordinate.latitude,
-                        longitude: location.coordinate.longitude
-                    ),
-                    distance: newDistance,
-                    // Copy other values from last entry or use defaults
-                    magneticCourse: lastEntry.magneticCourse,
-                    courseOverGround: lastEntry.courseOverGround,
-                    barometer: lastEntry.barometer,
-                    temperature: lastEntry.temperature,
-                    visibility: lastEntry.visibility,
-                    cloudCover: lastEntry.cloudCover,
-                    wind: lastEntry.wind,
-                    sailState: lastEntry.sailState,
-                    speed: lastEntry.speed,
-                    engineState: lastEntry.engineState,
-                    maneuver: lastEntry.maneuver,
-                    notes: "Auto-tracked position"
-                )
-                
-                addEntry(newEntry)
-            }
+            // Hole die letzte bekannte Gesamtdistanz der Voyage (z.B. 120nm)
+            let lastTotalDistance = entries.last?.distance ?? 0.0
+            
+            // Addiere die neue Teilstrecke zur Gesamtdistanz und runde auf zwei Nachkommastellen
+            let updatedTotalDistance = (lastTotalDistance + newSegmentDistance).rounded(toDecimalPlaces: 2)
+            
+            // Create a new entry with the updated total distance
+            let newEntry = LogEntry(
+                timestamp: Date(),
+                coordinates: Coordinates(
+                    latitude: location.coordinate.latitude,
+                    longitude: location.coordinate.longitude
+                ),
+                distance: updatedTotalDistance,
+                magneticCourse: entries.last?.magneticCourse ?? 0.0,
+                courseOverGround: entries.last?.courseOverGround ?? 0.0,
+                barometer: entries.last?.barometer ?? 1013.25,
+                temperature: entries.last?.temperature ?? 0.0,
+                visibility: entries.last?.visibility ?? 0,
+                cloudCover: entries.last?.cloudCover ?? 0,
+                wind: entries.last?.wind ?? Wind(direction: .none, speedKnots: 0.0, beaufortForce: 0),
+                sailState: entries.last?.sailState ?? .none,
+                speed: entries.last?.speed ?? 0.0,
+                engineState: entries.last?.engineState ?? .off,
+                maneuver: entries.last?.maneuver,
+                notes: "Auto-tracked position"
+            )
+            
+            addEntry(newEntry)
         }
         
         lastTrackedLocation = location
@@ -245,4 +245,12 @@ struct ImportStats {
     let totalProcessed: Int
     let added: Int
     let duplicates: Int
+}
+
+// Extension für das Runden auf eine bestimmte Anzahl Nachkommastellen
+extension Double {
+    func rounded(toDecimalPlaces places: Int) -> Double {
+        let multiplier = pow(10.0, Double(places))
+        return (self * multiplier).rounded() / multiplier
+    }
 } 
