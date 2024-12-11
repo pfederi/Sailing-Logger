@@ -21,6 +21,22 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
            let savedLon = UserDefaults.standard.object(forKey: "LastKnownLongitude") as? Double {
             lastKnownLocation = Coordinates(latitude: savedLat, longitude: savedLon)
         }
+        
+        // Sofort nach der Initialisierung Location-Updates anfordern
+        requestLocation()
+    }
+    
+    func requestLocation() {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.startUpdatingLocation()
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .denied, .restricted:
+            print("Location access denied or restricted")
+        @unknown default:
+            break
+        }
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
