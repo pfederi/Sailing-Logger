@@ -2,11 +2,54 @@ import SwiftUI
 import MapKit
 import UniformTypeIdentifiers
 
+enum TrackingInterval: Int, CaseIterable, Identifiable {
+    case oneMinute = 60
+    case fiveMinutes = 300
+    case tenMinutes = 600
+    case thirtyMinutes = 1800
+    
+    var id: Int { self.rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .oneMinute: return "1 Minute"
+        case .fiveMinutes: return "5 Minutes"
+        case .tenMinutes: return "10 Minutes"
+        case .thirtyMinutes: return "30 Minutes"
+        }
+    }
+    
+    static func fromRawValue(_ value: Int) -> TrackingInterval {
+        return TrackingInterval.allCases.first { $0.rawValue == value } ?? .fiveMinutes
+    }
+}
+
+class TrackingSettings: ObservableObject {
+    @Published var isAutoTrackingEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isAutoTrackingEnabled, forKey: "AutoTrackingEnabled")
+        }
+    }
+    
+    @Published var trackingInterval: TrackingInterval {
+        didSet {
+            UserDefaults.standard.set(trackingInterval.rawValue, forKey: "TrackingInterval")
+        }
+    }
+    
+    init() {
+        self.isAutoTrackingEnabled = UserDefaults.standard.bool(forKey: "AutoTrackingEnabled")
+        let rawValue = UserDefaults.standard.integer(forKey: "TrackingInterval")
+        self.trackingInterval = TrackingInterval.fromRawValue(rawValue)
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var themeManager: ThemeManager
     @ObservedObject var logStore: LogStore
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var voyageStore: VoyageStore
+    @ObservedObject var locationManager: LocationManager
     @Environment(\.dismiss) var dismiss
     @State private var showingDeleteConfirmation = false
     @State private var regionToDelete: String?
@@ -24,6 +67,7 @@ struct SettingsView: View {
                 logStore: logStore,
                 tileManager: tileManager,
                 voyageStore: voyageStore,
+                locationManager: locationManager,
                 showingDeleteConfirmation: $showingDeleteConfirmation,
                 regionToDelete: $regionToDelete,
                 showDownloadStartedAlert: $showDownloadStartedAlert,
@@ -80,15 +124,18 @@ private struct SettingsFormContent: View {
     @ObservedObject var logStore: LogStore
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var voyageStore: VoyageStore
+    @ObservedObject var locationManager: LocationManager
     @Binding var showingDeleteConfirmation: Bool
     @Binding var regionToDelete: String?
     @Binding var showDownloadStartedAlert: Bool
     let dismiss: DismissAction
     @Environment(\.colorScheme) var colorScheme
+    @StateObject private var trackingSettings = TrackingSettings()
     
     var body: some View {
         Form {
             AppearanceSection(themeManager: themeManager)
+            locationTrackingSection
             WeatherSection(themeManager: themeManager)
             OpenSeaMapSection(
                 tileManager: tileManager,
@@ -108,6 +155,32 @@ private struct SettingsFormContent: View {
             }
         }
         .tint(MaritimeColors.navy(for: colorScheme))
+    }
+    
+    private var locationTrackingSection: some View {
+        Section("Location Tracking") {
+            Toggle("Auto-track Distance", isOn: $trackingSettings.isAutoTrackingEnabled)
+                .onChange(of: trackingSettings.isAutoTrackingEnabled) { _, newValue in
+                    if newValue {
+                        locationManager.startBackgroundTracking(interval: trackingSettings.trackingInterval.rawValue)
+                    } else {
+                        locationManager.stopBackgroundTracking()
+                    }
+                }
+            
+            if trackingSettings.isAutoTrackingEnabled {
+                Picker("Update Interval", selection: $trackingSettings.trackingInterval) {
+                    ForEach(TrackingInterval.allCases) { interval in
+                        Text(interval.displayName).tag(interval)
+                    }
+                }
+                .onChange(of: trackingSettings.trackingInterval) { _, newValue in
+                    if trackingSettings.isAutoTrackingEnabled {
+                        locationManager.startBackgroundTracking(interval: newValue.rawValue)
+                    }
+                }
+            }
+        }
     }
 }
 

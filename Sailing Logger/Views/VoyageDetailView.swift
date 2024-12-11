@@ -32,22 +32,12 @@ struct VoyageDetailView: View {
         self.logStore = logStore
     }
     
-    private func crewDetailRow(for crewMember: CrewMember) -> some View {
-        let icon = crewMember.role == .skipper ? "sailboat.circle.fill" :
-                  crewMember.role == .secondSkipper ? "sailboat.circle" :
-                  "person.fill"
+    // Neue separate View für die Voyage Details Section
+    private struct VoyageDetailsSection: View {
+        let currentVoyage: Voyage
+        @Environment(\.colorScheme) var colorScheme
         
-        return VoyageDetailRow(
-            title: crewMember.role.rawValue,
-            value: crewMember.name,
-            icon: icon
-        )
-        .font(.system(size: crewMember.role == .skipper || crewMember.role == .secondSkipper ? 24 : 20))
-    }
-    
-    var body: some View {
-        List {
-            // Voyage Details Section
+        var body: some View {
             Section {
                 VoyageDetailRow(
                     title: "Name", 
@@ -63,16 +53,32 @@ struct VoyageDetailView: View {
                         icon: "sailboat.fill"
                     )
                 }
-                VoyageDetailRow(title: "Start Date", value: currentVoyage.startDate.formatted(date: .long, time: .shortened), icon: "calendar")
+                VoyageDetailRow(
+                    title: "Start Date", 
+                    value: currentVoyage.startDate.formatted(date: .long, time: .shortened), 
+                    icon: "calendar"
+                )
                 if let endDate = currentVoyage.endDate {
-                    VoyageDetailRow(title: "End Date", value: endDate.formatted(date: .long, time: .shortened), icon: "calendar.badge.checkmark")
+                    VoyageDetailRow(
+                        title: "End Date", 
+                        value: endDate.formatted(date: .long, time: .shortened), 
+                        icon: "calendar.badge.checkmark"
+                    )
                 }
             } header: {
                 Label("Voyage Details", systemImage: "info.circle.fill")
                     .fontWeight(.bold)
                     .foregroundColor(MaritimeColors.navy(for: colorScheme))
             }
-            // Crew Section
+        }
+    }
+    
+    // Separate View für die Crew Section
+    private struct CrewSection: View {
+        let currentVoyage: Voyage
+        @Environment(\.colorScheme) var colorScheme
+        
+        var body: some View {
             if !currentVoyage.crew.isEmpty {
                 Section {
                     let sortedCrew = currentVoyage.crew.sorted { member1, member2 in
@@ -88,11 +94,118 @@ struct VoyageDetailView: View {
                     }
                 } header: {
                     Label("Crew", systemImage: "person.3.fill")
-                    .fontWeight(.bold)
-                    .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                        .fontWeight(.bold)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
-            // Stats Section
+        }
+        
+        private func crewDetailRow(for crewMember: CrewMember) -> some View {
+            let icon: String
+            switch crewMember.role {
+            case .skipper:
+                icon = "sailboat.circle.fill"
+            case .secondSkipper:
+                icon = "sailboat.circle"
+            default:
+                icon = "person.fill"
+            }
+            
+            let fontSize: CGFloat = (crewMember.role == .skipper || crewMember.role == .secondSkipper) ? 24 : 20
+            
+            return VoyageDetailRow(
+                title: crewMember.role.rawValue,
+                value: crewMember.name,
+                icon: icon
+            )
+            .font(.system(size: fontSize))
+        }
+    }
+    
+    // Location Tracking Section
+    private struct LocationTrackingSection: View {
+        let voyage: Voyage
+        @ObservedObject var voyageStore: VoyageStore
+        let locationManager: LocationManager
+        @Environment(\.colorScheme) var colorScheme
+        @State private var isTracking: Bool
+        
+        init(voyage: Voyage, voyageStore: VoyageStore, locationManager: LocationManager) {
+            self.voyage = voyage
+            self.voyageStore = voyageStore
+            self.locationManager = locationManager
+            self._isTracking = State(initialValue: voyage.isTracking)
+        }
+        
+        var body: some View {
+            if voyage.endDate == nil && UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
+                Section {
+                    Toggle(isOn: $isTracking) {
+                        HStack {
+                            Image(systemName: isTracking ? "location.fill" : "location.slash.fill")
+                            Text(isTracking ? "Tracking Active" : "Tracking Paused")
+                        }
+                    }
+                    .tint(MaritimeColors.navy(for: colorScheme))
+                    .onChange(of: isTracking) { _, newValue in
+                        Task {
+                            if let index = voyageStore.voyages.firstIndex(where: { $0.id == voyage.id }) {
+                                voyageStore.voyages[index].isTracking = newValue
+                                
+                                if newValue {
+                                    await MainActor.run {
+                                        locationManager.startBackgroundTracking(interval: 10)
+                                    }
+                                } else {
+                                    await MainActor.run {
+                                        locationManager.stopBackgroundTracking()
+                                    }
+                                }
+                                
+                                voyageStore.save()
+                            }
+                        }
+                    }
+                    
+                    if isTracking {
+                        Text("Your position is being automatically logged. You can pause tracking anytime, for example when you're on shore or anchored for a longer period.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("Location tracking is paused. Enable tracking when you're underway to automatically log your journey.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Label("Location Tracking", systemImage: "location.fill")
+                        .fontWeight(.bold)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                }
+            }
+        }
+    }
+    
+    // Stats Section
+    private struct StatsSection: View {
+        let currentVoyage: Voyage
+        @Environment(\.colorScheme) var colorScheme
+        
+        private func calculateMotorMiles() -> Double {
+            let sortedEntries = currentVoyage.logEntries.sorted { $0.timestamp < $1.timestamp }
+            var motorMiles = 0.0
+            var lastDistance = 0.0
+            
+            for entry in sortedEntries {
+                if entry.engineState == .on {
+                    motorMiles += max(0, entry.distance - lastDistance)
+                }
+                lastDistance = entry.distance
+            }
+            
+            return motorMiles
+        }
+        
+        var body: some View {
             if currentVoyage.endDate != nil {
                 Section {
                     if let maxDistance = currentVoyage.logEntries.map({ $0.distance }).max() {
@@ -116,7 +229,7 @@ struct VoyageDetailView: View {
                        let lastEntry = currentVoyage.logEntries.max(by: { $0.timestamp < $1.timestamp }),
                        let maxDistance = currentVoyage.logEntries.map({ $0.distance }).max() {
                         let duration = lastEntry.timestamp.timeIntervalSince(firstEntry.timestamp)
-                        let averageSpeed = (maxDistance * 3600) / duration  // nm/h = knots
+                        let averageSpeed = (maxDistance * 3600) / duration
                         VoyageDetailRow(
                             title: "Average Speed",
                             value: String(format: "%.1f kts", averageSpeed),
@@ -151,8 +264,19 @@ struct VoyageDetailView: View {
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
-
-            // Log Entries Section - nur für archivierte Voyages
+        }
+    }
+    
+    // Log Entries Section
+    private struct LogEntriesSection: View {
+        let currentVoyage: Voyage
+        @ObservedObject var voyageStore: VoyageStore
+        @ObservedObject var locationManager: LocationManager
+        @ObservedObject var tileManager: OpenSeaMapTileManager
+        @ObservedObject var logStore: LogStore
+        @Environment(\.colorScheme) var colorScheme
+        
+        var body: some View {
             if currentVoyage.endDate != nil {
                 Section {
                     ForEach(currentVoyage.logEntries.sorted(by: { $0.timestamp > $1.timestamp })) { entry in
@@ -171,16 +295,28 @@ struct VoyageDetailView: View {
                     }
                 } header: {
                     Label("Log Entries", systemImage: "list.bullet")
-                    .fontWeight(.bold)
+                        .fontWeight(.bold)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }
             }
-
-            // Import/Export Section
+        }
+    }
+    
+    // Import/Export Section
+    private struct ImportExportSection: View {
+        let currentVoyage: Voyage
+        @Binding var showingFilePicker: Bool
+        @Binding var showingShareSheet: Bool
+        @Binding var isPreparingExport: Bool
+        @Environment(\.colorScheme) var colorScheme
+        let importAction: () -> Void
+        let exportAction: () -> Void
+        
+        var body: some View {
             if currentVoyage.endDate == nil {
                 Section {
                     HStack(spacing: 0) {
-                        Button(action: { importVoyageData() }) {
+                        Button(action: importAction) {
                             Label("Import", systemImage: "square.and.arrow.down")
                                 .frame(maxWidth: .infinity)
                                 .foregroundColor(MaritimeColors.navy(for: colorScheme))
@@ -190,7 +326,7 @@ struct VoyageDetailView: View {
                         
                         Divider()
                         
-                        Button(action: { exportVoyageData() }) {
+                        Button(action: exportAction) {
                             if isPreparingExport {
                                 HStack {
                                     ProgressView()
@@ -213,20 +349,26 @@ struct VoyageDetailView: View {
                     Label("Voyage Sync", systemImage: "arrow.triangle.2.circlepath")
                         .fontWeight(.bold)
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                        .padding(.leading)
                 } footer: {
                     Text("Export your voyage data to share with crew members or import data from others to sync log entries between devices.")
                         .foregroundColor(.secondary)
+                        .padding(.leading)
+                        .padding(.top, 8)
                 }
                 .listRowInsets(EdgeInsets())
                 .buttonStyle(.plain)
-                .alert("Error", isPresented: $showAlert) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text(alertMessage)
-                }
             }
-
-            // End Voyage Button Section
+        }
+    }
+    
+    // End Voyage Section
+    private struct EndVoyageSection: View {
+        let currentVoyage: Voyage
+        @Binding var showingEndVoyageAlert: Bool
+        @Environment(\.colorScheme) var colorScheme
+        
+        var body: some View {
             if currentVoyage.endDate == nil {
                 Section {
                     SlideToEndButton(
@@ -246,12 +388,39 @@ struct VoyageDetailView: View {
                         .foregroundColor(.secondary)
                         .padding(.top, 8)
                 }
-                .alert("Error", isPresented: $showAlert) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text(alertMessage)
-                }
             }
+        }
+    }
+    
+    var body: some View {
+        List {
+            VoyageDetailsSection(currentVoyage: currentVoyage)
+            CrewSection(currentVoyage: currentVoyage)
+            LocationTrackingSection(
+                voyage: voyage,
+                voyageStore: voyageStore,
+                locationManager: locationManager
+            )
+            StatsSection(currentVoyage: currentVoyage)
+            LogEntriesSection(
+                currentVoyage: currentVoyage,
+                voyageStore: voyageStore,
+                locationManager: locationManager,
+                tileManager: tileManager,
+                logStore: logStore
+            )
+            ImportExportSection(
+                currentVoyage: currentVoyage,
+                showingFilePicker: $showingFilePicker,
+                showingShareSheet: $showingShareSheet,
+                isPreparingExport: $isPreparingExport,
+                importAction: importVoyageData,
+                exportAction: exportVoyageData
+            )
+            EndVoyageSection(
+                currentVoyage: currentVoyage,
+                showingEndVoyageAlert: $showingEndVoyageAlert
+            )
         }
         .navigationTitle(currentVoyage.name)
         .detailToolbar(
@@ -310,21 +479,6 @@ struct VoyageDetailView: View {
             print("   Old count: \(oldValue.count)")
             print("   New count: \(newValue.count)")
         }
-    }
-    
-    private func calculateMotorMiles() -> Double {
-        let sortedEntries = currentVoyage.logEntries.sorted { $0.timestamp < $1.timestamp }
-        var motorMiles = 0.0
-        var lastDistance = 0.0
-        
-        for entry in sortedEntries {
-            if entry.engineState == .on {
-                motorMiles += max(0, entry.distance - lastDistance)
-            }
-            lastDistance = entry.distance
-        }
-        
-        return motorMiles
     }
     
     private func endVoyage() {

@@ -41,27 +41,33 @@ private struct VoyageHeaderContent: View {
 }
 
 struct ContentView: View {
-    @StateObject private var voyageStore = VoyageStore()
+    private static func createDependencies() -> (LocationManager, VoyageStore, LogStore) {
+        let locationManager = LocationManager()
+        let voyageStore = VoyageStore(locationManager: locationManager)
+        let logStore = LogStore(voyageStore: voyageStore)
+        return (locationManager, voyageStore, logStore)
+    }
+    
+    private static let dependencies = createDependencies()
+    
+    @StateObject private var locationManager: LocationManager
+    @StateObject private var voyageStore: VoyageStore
     @StateObject private var logStore: LogStore
-    @StateObject private var locationManager = LocationManager()
-    @StateObject private var tileManager = OpenSeaMapTileManager()
     @StateObject private var themeManager = ThemeManager()
-    @State private var showingSettings = false
-    @State private var showingNewEntry = false
+    @StateObject private var tileManager = OpenSeaMapTileManager()
+    
     @State private var showingNewVoyage = false
-    @State private var showingArchive = false
+    @State private var showingSettings = false
     @State private var showingEditVoyage = false
     @State private var showingEndVoyageConfirmation = false
     @State private var showingVoyageDetail = false
+    @State private var showingNewEntry = false
     @Environment(\.colorScheme) var colorScheme
     
     init() {
-        // Create voyageStore first
-        let tempVoyageStore = VoyageStore()
-        
-        // Initialize state objects separately
-        _voyageStore = StateObject(wrappedValue: tempVoyageStore)
-        _logStore = StateObject(wrappedValue: LogStore(voyageStore: tempVoyageStore))
+        _locationManager = StateObject(wrappedValue: Self.dependencies.0)
+        _voyageStore = StateObject(wrappedValue: Self.dependencies.1)
+        _logStore = StateObject(wrappedValue: Self.dependencies.2)
     }
     
     private var shouldShowNewVoyage: Bool {
@@ -90,19 +96,59 @@ struct ContentView: View {
     private var voyageHeaderView: some View {
         Group {
             if let activeVoyage = voyageStore.activeVoyage {
-                NavigationLink(destination: VoyageDetailView(
-                    voyage: activeVoyage,
-                    voyageStore: voyageStore,
-                    locationManager: locationManager,
-                    tileManager: tileManager,
-                    logStore: logStore
-                )) {
-                    VoyageHeaderContent(voyage: activeVoyage, logStore: logStore)
+                VStack(spacing: 0) {
+                    NavigationLink(destination: VoyageDetailView(
+                        voyage: activeVoyage,
+                        voyageStore: voyageStore,
+                        locationManager: locationManager,
+                        tileManager: tileManager,
+                        logStore: logStore
+                    )) {
+                        VoyageHeaderContent(voyage: activeVoyage, logStore: logStore)
+                    }
+                    
+                    // Tracking Status Bar - nur anzeigen wenn Auto-Tracking aktiviert ist
+                    if UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
+                        HStack(spacing: 12) {
+                            if activeVoyage.isTracking {
+                                Image(systemName: "location.fill")
+                                    .foregroundColor(.blue)
+                                Text("Location tracking active")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button {
+                                    withAnimation {
+                                        voyageStore.updateVoyageTracking(activeVoyage, isTracking: false)
+                                    }
+                                } label: {
+                                    Text("Stop")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                }
+                            } else {
+                                Image(systemName: "location.slash.fill")
+                                    .foregroundColor(.secondary)
+                                Text("Location tracking stopped")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button {
+                                    withAnimation {
+                                        voyageStore.updateVoyageTracking(activeVoyage, isTracking: true)
+                                    }
+                                } label: {
+                                    Text("Start")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(activeVoyage.isTracking ? Color.blue.opacity(0.1) : Color.secondary.opacity(0.1))
+                    }
                 }
-                
-                Rectangle()
-                    .fill(MaritimeColors.seafoam(for: colorScheme))
-                    .frame(height: 1)
             }
         }
     }
@@ -192,15 +238,6 @@ struct ContentView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Sailing Logger")
-                        .font(.headline)
-                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
-                }
-            }
             .mainToolbar(
                 showSettings: { showingSettings = true },
                 hasArchivedVoyages: voyageStore.voyages.contains(where: { $0.endDate != nil }),
@@ -215,7 +252,8 @@ struct ContentView: View {
                 themeManager: themeManager,
                 logStore: logStore,
                 tileManager: tileManager,
-                voyageStore: voyageStore
+                voyageStore: voyageStore,
+                locationManager: locationManager
             )
         }
         .sheet(isPresented: $showingNewEntry) {
@@ -230,10 +268,11 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showingNewVoyage) {
-            NavigationView {
-                NewVoyageView(voyageStore: voyageStore, logStore: logStore)
-                    .tint(MaritimeColors.navy(for: colorScheme))
-            }
+            NewVoyageView(
+                voyageStore: voyageStore,
+                logStore: logStore,
+                locationManager: locationManager
+            )
         }
         .sheet(isPresented: $showingEditVoyage) {
             if let activeVoyage = voyageStore.activeVoyage {

@@ -2,14 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+		<string>We need your location to log your journey and calculate distances.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>To automatically track your journey in the background, we need permission to access your location even when the app is not active.</string>
 	<key>NSAppTransportSecurity</key>
-	<dict>
+<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>

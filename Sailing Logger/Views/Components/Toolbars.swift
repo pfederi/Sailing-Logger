@@ -12,6 +12,12 @@ struct MainToolbarModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Sailing Logger")
+                        .font(.headline)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showSettings()
@@ -39,7 +45,6 @@ struct MainToolbarModifier: ViewModifier {
             }
             .toolbarBackground(MaritimeColors.seafoam(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .foregroundColor(colorScheme == .dark ? .white : .primary)
     }
 }
 
@@ -156,5 +161,29 @@ extension View {
         dismiss: @escaping () -> Void
     ) -> some View {
         modifier(LogViewToolbarModifier(dismiss: dismiss))
+    }
+}
+
+struct LogViewToolbar: ToolbarContent {
+    @ObservedObject var voyage: Voyage
+    @ObservedObject var voyageStore: VoyageStore
+    let dismiss: () -> Void
+    
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: dismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                voyageStore.updateVoyageTracking(voyage, isTracking: !voyage.isTracking)
+            } label: {
+                Image(systemName: voyage.isTracking ? "location.fill" : "location.slash.fill")
+                    .foregroundStyle(voyage.isTracking ? .blue : .secondary)
+            }
+        }
     }
 } 

@@ -12,6 +12,8 @@ class LogStore: ObservableObject {
     
     @Published private(set) var currentVoyage: Voyage?
     
+    private var lastTrackedLocation: CLLocation?
+    
     init(voyageStore: VoyageStore) {
         self.voyageStore = voyageStore
         self.currentVoyage = voyageStore.activeVoyage
@@ -192,6 +194,49 @@ class LogStore: ObservableObject {
         entries.removeAll()
         save()
         print("🗑 Deleted all log entries")
+    }
+    
+    func handleLocationUpdate(_ notification: Notification) {
+        // Nur updaten wenn die aktive Voyage tracking aktiviert hat
+        guard let activeVoyage = voyageStore.activeVoyage,
+              activeVoyage.isTracking,
+              let location = notification.userInfo?["location"] as? CLLocation else { return }
+        
+        if let lastLocation = lastTrackedLocation {
+            let distance = location.distance(from: lastLocation) / 1852 // Convert to nautical miles
+            
+            // Update the total distance for the current voyage
+            if let lastEntry = entries.last {
+                let newDistance = (lastEntry.distance) + distance
+                
+                // Create a new entry with the updated distance
+                let newEntry = LogEntry(
+                    timestamp: Date(),
+                    coordinates: Coordinates(
+                        latitude: location.coordinate.latitude,
+                        longitude: location.coordinate.longitude
+                    ),
+                    distance: newDistance,
+                    // Copy other values from last entry or use defaults
+                    magneticCourse: lastEntry.magneticCourse,
+                    courseOverGround: lastEntry.courseOverGround,
+                    barometer: lastEntry.barometer,
+                    temperature: lastEntry.temperature,
+                    visibility: lastEntry.visibility,
+                    cloudCover: lastEntry.cloudCover,
+                    wind: lastEntry.wind,
+                    sailState: lastEntry.sailState,
+                    speed: lastEntry.speed,
+                    engineState: lastEntry.engineState,
+                    maneuver: lastEntry.maneuver,
+                    notes: "Auto-tracked position"
+                )
+                
+                addEntry(newEntry)
+            }
+        }
+        
+        lastTrackedLocation = location
     }
 }
 

@@ -4,6 +4,7 @@ import Foundation
 class VoyageStore: ObservableObject {
     @Published var voyages: [Voyage] = []
     @Published private(set) var activeVoyage: Voyage?
+    private let locationManager: LocationManager
     
     private let savePath = FileManager.documentsDirectory.appendingPathComponent("SavedVoyages")
     
@@ -13,7 +14,9 @@ class VoyageStore: ObservableObject {
         return activeVoyage != nil
     }
     
-    init() {
+    init(locationManager: LocationManager) {
+        self.locationManager = locationManager
+        self.voyages = []
         loadVoyages()
     }
     
@@ -27,6 +30,11 @@ class VoyageStore: ObservableObject {
     func endVoyage(_ voyage: Voyage) {
         print("Ending voyage: \(voyage.name)")
         if let index = voyages.firstIndex(where: { $0.id == voyage.id }) {
+            // Stoppe das Tracking automatisch
+            if voyages[index].isTracking {
+                updateVoyageTracking(voyages[index], isTracking: false)
+            }
+            
             voyages[index].logEntries = voyage.logEntries
             voyages[index].isActive = false
             voyages[index].endDate = Date()
@@ -144,5 +152,37 @@ class VoyageStore: ObservableObject {
         activeVoyage = nil
         save()
         print("🗑 Deleted all voyages")
+    }
+    
+    func updateVoyageTracking(_ voyage: Voyage, isTracking: Bool) {
+        if let index = voyages.firstIndex(where: { $0.id == voyage.id }) {
+            voyages[index].isTracking = isTracking
+            // Ensure active voyage is updated
+            if voyages[index].id == activeVoyage?.id {
+                activeVoyage = voyages[index]
+            }
+            
+            // Start/Stop tracking in LocationManager
+            if isTracking {
+                locationManager.startBackgroundTracking(interval: UserDefaults.standard.integer(forKey: "trackingInterval"))
+            } else {
+                locationManager.stopBackgroundTracking()
+            }
+            
+            save()
+            objectWillChange.send()
+        }
+    }
+    
+    func startTracking(_ voyage: Voyage) {
+        voyage.isTracking = true
+        locationManager.startBackgroundTracking(interval: 60)
+        save()
+    }
+    
+    func stopTracking(_ voyage: Voyage) {
+        voyage.isTracking = false
+        locationManager.stopBackgroundTracking()
+        save()
     }
 } 

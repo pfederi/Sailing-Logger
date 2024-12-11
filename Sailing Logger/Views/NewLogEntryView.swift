@@ -21,6 +21,7 @@ struct NewLogEntryView: View {
     @State private var magneticCourse: Double? = nil
     @State private var courseOverGround: Double? = nil
     @State private var distance: Double? = nil
+    @State private var distanceString: String = ""
     @State private var barometer: Double? = nil
     @State private var temperature: Double? = nil
     @State private var visibility: Visibility? = nil
@@ -530,6 +531,73 @@ struct NewLogEntryView: View {
         }
     }
     
+    private var calculatedDistance: Double? {
+        guard let lastEntry = logStore.entries.last,
+              let currentLocation = locationManager.currentLocation else {
+            return nil
+        }
+        
+        let lastLocation = CLLocation(
+            latitude: lastEntry.coordinates.latitude,
+            longitude: lastEntry.coordinates.longitude
+        )
+        
+        let currentCLLocation = CLLocation(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+        )
+        
+        let distanceInMeters = lastLocation.distance(from: currentCLLocation)
+        return distanceInMeters / 1852 // Convert to nautical miles
+    }
+    
+    var distanceSection: some View {
+        Section {
+            VStack(spacing: 8) {
+                HStack {
+                    Image(systemName: "arrow.triangle.swap")
+                        .frame(width: 24)
+                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
+                    Text("Distance")
+                    Spacer()
+                    TextField("", text: $distanceString)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 100)
+                        .focused($focusedField, equals: .distance)
+                        .onChange(of: distanceString) { _, newValue in
+                            if let doubleValue = Double(newValue) {
+                                distance = doubleValue
+                            } else {
+                                distance = nil
+                            }
+                        }
+                    Text("nm")
+                }
+                
+                if let calculatedDistance = calculatedDistance,
+                   UserDefaults.standard.bool(forKey: "AutoTrackingEnabled") {
+                    Divider()
+                    
+                    HStack {
+                        Spacer()
+                        Button {
+                            distanceString = String(format: "%.1f", calculatedDistance)
+                            distance = calculatedDistance
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.2.circlepath")
+                                Text("Use calculated distance (\(String(format: "%.1f", calculatedDistance))nm)")
+                            }
+                            .font(.footnote)
+                            .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     var body: some View {
         Form {
             timeAndPositionSection
@@ -537,22 +605,7 @@ struct NewLogEntryView: View {
             
             mapSection
             
-            Section {
-                HStack {
-                    Image(systemName: "arrow.triangle.swap")
-                        .frame(width: 24)
-                        .foregroundColor(MaritimeColors.navy(for: colorScheme))
-                    Text("Distance")
-                    Spacer()
-                    TextField("", value: $distance, formatter: numberFormatter)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 100)
-                        .focused($focusedField, equals: .distance)
-                    Text("nm")
-                }
-            }
-            .listSectionSpacing(.compact)
+            distanceSection
             
             Section("Maneuvers") {
                 HStack {

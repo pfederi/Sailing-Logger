@@ -98,6 +98,7 @@ struct NewVoyageView: View {
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var voyageStore: VoyageStore
     @ObservedObject var logStore: LogStore
+    @ObservedObject var locationManager: LocationManager
     
     @State private var voyageName = ""
     @State private var startDate = Date()
@@ -167,8 +168,21 @@ struct NewVoyageView: View {
                 )
                 
                 Section {
-                    Button("Create Voyage") {
-                        createVoyage()
+                    Button("Start") {
+                        let newVoyage = Voyage(
+                            id: UUID(),
+                            name: voyageName,
+                            boatName: boatName,
+                            boatType: boatType,
+                            startDate: Date(),
+                            endDate: nil,
+                            isTracking: false,
+                            logEntries: [],
+                            isActive: true,
+                            crew: crew
+                        )
+                        voyageStore.addVoyage(newVoyage)
+                        dismiss()
                     }
                     .buttonStyle(CustomButtonStyle(isEnabled: formIsValid))
                     .disabled(!formIsValid)
@@ -256,11 +270,16 @@ struct NewVoyageView: View {
         }
         
         let newVoyage = Voyage(
+            id: UUID(),
             name: voyageName,
-            startDate: startDate,
-            crew: crew,
+            boatName: boatName,
             boatType: boatType,
-            boatName: boatName
+            startDate: startDate,
+            endDate: nil,
+            isTracking: false,
+            logEntries: [],
+            isActive: true,
+            crew: crew
         )
         
         voyageStore.addVoyage(newVoyage)
@@ -416,7 +435,12 @@ struct AddCrewSheet: View {
 }
 
 #Preview {
-    NavigationView {
-        NewVoyageView(voyageStore: VoyageStore(), logStore: LogStore(voyageStore: VoyageStore()))
-    }
+    let locationManager = LocationManager()
+    let voyageStore = VoyageStore(locationManager: locationManager)
+    let logStore = LogStore(voyageStore: voyageStore)
+    NewVoyageView(
+        voyageStore: voyageStore,
+        logStore: logStore,
+        locationManager: locationManager
+    )
 } 

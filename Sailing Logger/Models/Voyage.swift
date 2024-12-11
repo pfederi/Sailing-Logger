@@ -18,34 +18,60 @@ enum CrewRole: String, Codable, CaseIterable {
     case crew = "Crew"
 }
 
-class Voyage: Identifiable, Codable {
+class Voyage: ObservableObject, Identifiable, Codable {
     let id: UUID
-    var name: String
-    var startDate: Date
-    var endDate: Date?
-    var crew: [CrewMember]
-    var boatType: String
-    var boatName: String
-    var isActive: Bool
-    var logEntries: [LogEntry]
+    @Published var name: String
+    @Published var boatName: String
+    @Published var boatType: String
+    @Published var startDate: Date
+    @Published var endDate: Date?
+    @Published var isTracking: Bool
+    @Published var logEntries: [LogEntry]
+    @Published var isActive: Bool
+    @Published var crew: [CrewMember]
     
-    init(id: UUID = UUID(), 
-         name: String, 
-         startDate: Date = Date(),
-         endDate: Date? = nil,
-         crew: [CrewMember] = [],
-         boatType: String,
-         boatName: String,
-         isActive: Bool = true,
-         logEntries: [LogEntry] = []) {
+    enum CodingKeys: String, CodingKey {
+        case id, name, boatName, boatType, startDate, endDate, isTracking, logEntries, isActive, crew
+    }
+    
+    init(id: UUID = UUID(), name: String, boatName: String, boatType: String, startDate: Date = Date(), endDate: Date? = nil, isTracking: Bool = false, logEntries: [LogEntry] = [], isActive: Bool = true, crew: [CrewMember] = []) {
         self.id = id
         self.name = name
+        self.boatName = boatName
+        self.boatType = boatType
         self.startDate = startDate
         self.endDate = endDate
-        self.crew = crew
-        self.boatType = boatType
-        self.boatName = boatName
-        self.isActive = isActive
+        self.isTracking = isTracking
         self.logEntries = logEntries
+        self.isActive = isActive
+        self.crew = crew
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        boatName = try container.decode(String.self, forKey: .boatName)
+        boatType = try container.decode(String.self, forKey: .boatType)
+        startDate = try container.decode(Date.self, forKey: .startDate)
+        endDate = try container.decodeIfPresent(Date.self, forKey: .endDate)
+        isTracking = try container.decode(Bool.self, forKey: .isTracking)
+        logEntries = try container.decode([LogEntry].self, forKey: .logEntries)
+        isActive = try container.decode(Bool.self, forKey: .isActive)
+        crew = try container.decode([CrewMember].self, forKey: .crew)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(boatName, forKey: .boatName)
+        try container.encode(boatType, forKey: .boatType)
+        try container.encode(startDate, forKey: .startDate)
+        try container.encodeIfPresent(endDate, forKey: .endDate)
+        try container.encode(isTracking, forKey: .isTracking)
+        try container.encode(logEntries, forKey: .logEntries)
+        try container.encode(isActive, forKey: .isActive)
+        try container.encode(crew, forKey: .crew)
     }
 } 
