@@ -596,7 +596,7 @@ struct NewLogEntryView: View {
         return distanceInMeters / 1852 // Convert to nautical miles
     }
     
-    var distanceSection: some View {
+    private var distanceSection: some View {
         Section {
             VStack(spacing: 8) {
                 HStack {
@@ -627,17 +627,25 @@ struct NewLogEntryView: View {
                    locationManager.isTrackingActive {
                     Divider()
                     
-                    HStack {
-                        Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
                         Button {
                             useCalculatedDistance()
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.2.circlepath")
-                                Text("Add GPS distance (\(String(format: "%.2f", calculatedDistance))nm) → \(String(format: "%.2f", lastTotal + calculatedDistance))nm")
+                                Text("Use tracked distance: \(String(format: "%.2f", lastTotal + calculatedDistance))nm")
+                                    .fontWeight(.medium)
                             }
                             .font(.footnote)
                             .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        
+                        if calculatedDistance > 0 {
+                            Text("(+\(String(format: "%.2f", calculatedDistance))nm since last entry)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
                         }
                     }
                 }
