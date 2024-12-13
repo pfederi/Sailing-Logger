@@ -10,6 +10,7 @@ struct NewLogEntryView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
     @ObservedObject var themeManager: ThemeManager
+    @ObservedObject var voyageStore: VoyageStore
     
     private var voyage: Voyage? {
         logStore.currentVoyage
@@ -146,11 +147,12 @@ struct NewLogEntryView: View {
         return formatter
     }()
     
-    init(logStore: LogStore, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, themeManager: ThemeManager) {
+    init(logStore: LogStore, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, themeManager: ThemeManager, voyageStore: VoyageStore) {
         self.logStore = logStore
         self.locationManager = locationManager
         self.tileManager = tileManager
         self.themeManager = themeManager
+        self.voyageStore = voyageStore
         
         let location = locationManager.currentLocation ?? locationManager.lastKnownLocation ?? Coordinates(latitude: 0, longitude: 0)
         _coordinates = State(initialValue: location)
@@ -533,6 +535,7 @@ struct NewLogEntryView: View {
             MapView(
                 locationManager: locationManager,
                 tileManager: tileManager,
+                voyageStore: voyageStore,
                 coordinates: coordinates,
                 logEntries: logStore.entries
             )

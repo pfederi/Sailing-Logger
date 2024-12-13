@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 
 struct CrewMember: Codable, Identifiable, Hashable {
     let id: UUID
@@ -29,12 +30,13 @@ class Voyage: ObservableObject, Identifiable, Codable {
     @Published var logEntries: [LogEntry]
     @Published var isActive: Bool
     @Published var crew: [CrewMember]
+    @Published var trackedLocations: [TrackedLocation] = []
     
     enum CodingKeys: String, CodingKey {
-        case id, name, boatName, boatType, startDate, endDate, isTracking, logEntries, isActive, crew
+        case id, name, boatName, boatType, startDate, endDate, isTracking, logEntries, isActive, crew, trackedLocations
     }
     
-    init(id: UUID = UUID(), name: String, boatName: String, boatType: String, startDate: Date = Date(), endDate: Date? = nil, isTracking: Bool = false, logEntries: [LogEntry] = [], isActive: Bool = true, crew: [CrewMember] = []) {
+    init(id: UUID = UUID(), name: String, boatName: String, boatType: String, startDate: Date = Date(), endDate: Date? = nil, isTracking: Bool = false, logEntries: [LogEntry] = [], isActive: Bool = true, crew: [CrewMember] = [], trackedLocations: [TrackedLocation] = []) {
         self.id = id
         self.name = name
         self.boatName = boatName
@@ -45,6 +47,7 @@ class Voyage: ObservableObject, Identifiable, Codable {
         self.logEntries = logEntries
         self.isActive = isActive
         self.crew = crew
+        self.trackedLocations = trackedLocations
     }
     
     required init(from decoder: Decoder) throws {
@@ -59,6 +62,7 @@ class Voyage: ObservableObject, Identifiable, Codable {
         logEntries = try container.decode([LogEntry].self, forKey: .logEntries)
         isActive = try container.decode(Bool.self, forKey: .isActive)
         crew = try container.decode([CrewMember].self, forKey: .crew)
+        trackedLocations = try container.decode([TrackedLocation].self, forKey: .trackedLocations)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -73,5 +77,17 @@ class Voyage: ObservableObject, Identifiable, Codable {
         try container.encode(logEntries, forKey: .logEntries)
         try container.encode(isActive, forKey: .isActive)
         try container.encode(crew, forKey: .crew)
+        try container.encode(trackedLocations, forKey: .trackedLocations)
+    }
+    
+    // Hilfsstruktur für das Speichern der Koordinaten
+    struct TrackedLocation: Codable {
+        let latitude: Double
+        let longitude: Double
+        let timestamp: Date
+        
+        var coordinate: CLLocationCoordinate2D {
+            CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
     }
 } 

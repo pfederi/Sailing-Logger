@@ -105,7 +105,11 @@ struct LogEntriesSection: View {
                     .textCase(nil)
                     .padding(.top, 10)
                 Spacer()
-                NavigationLink(destination: DailyLogViewContainer(entries: entries, date: date)) {
+                NavigationLink(destination: DailyLogViewContainer(
+                    entries: entries,
+                    date: date,
+                    voyageStore: voyageStore
+                )) {
                     Image(systemName: "doc.text")
                         .foregroundColor(MaritimeColors.navy(for: colorScheme))
                 }

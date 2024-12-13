@@ -30,6 +30,7 @@ struct LogEntryDetailView: View {
                 MapView(
                     locationManager: locationManager,
                     tileManager: tileManager,
+                    voyageStore: voyageStore,
                     coordinates: entry.coordinates,
                     logEntries: logStore.entries
                 )
@@ -188,7 +189,8 @@ struct LogEntryDetailView: View {
                     logStore: logStore, 
                     entry: entry,
                     locationManager: locationManager,
-                    tileManager: tileManager
+                    tileManager: tileManager,
+                    voyageStore: voyageStore
                 )
             }
         }

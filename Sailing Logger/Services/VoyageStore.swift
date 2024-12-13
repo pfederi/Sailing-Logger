@@ -4,7 +4,7 @@ import Foundation
 class VoyageStore: ObservableObject {
     @Published var voyages: [Voyage] = []
     @Published private(set) var activeVoyage: Voyage?
-    private let locationManager: LocationManager
+    private var locationManager: LocationManager?
     
     private let savePath = FileManager.documentsDirectory.appendingPathComponent("SavedVoyages")
     
@@ -14,10 +14,12 @@ class VoyageStore: ObservableObject {
         return activeVoyage != nil
     }
     
-    init(locationManager: LocationManager) {
-        self.locationManager = locationManager
-        self.voyages = []
+    init() {
         loadVoyages()
+    }
+    
+    func setLocationManager(_ manager: LocationManager) {
+        self.locationManager = manager
     }
     
     func addVoyage(_ voyage: Voyage) {
@@ -157,16 +159,16 @@ class VoyageStore: ObservableObject {
     func updateVoyageTracking(_ voyage: Voyage, isTracking: Bool) {
         if let index = voyages.firstIndex(where: { $0.id == voyage.id }) {
             voyages[index].isTracking = isTracking
-            // Ensure active voyage is updated
             if voyages[index].id == activeVoyage?.id {
                 activeVoyage = voyages[index]
             }
             
-            // Start/Stop tracking in LocationManager
-            if isTracking {
-                locationManager.startBackgroundTracking(interval: UserDefaults.standard.integer(forKey: "trackingInterval"))
-            } else {
-                locationManager.stopBackgroundTracking()
+            if let locationManager = locationManager {
+                if isTracking {
+                    locationManager.startBackgroundTracking(interval: UserDefaults.standard.integer(forKey: "trackingInterval"))
+                } else {
+                    locationManager.stopBackgroundTracking()
+                }
             }
             
             save()
@@ -176,13 +178,13 @@ class VoyageStore: ObservableObject {
     
     func startTracking(_ voyage: Voyage) {
         voyage.isTracking = true
-        locationManager.startBackgroundTracking(interval: 60)
+        locationManager?.startBackgroundTracking(interval: 60)
         save()
     }
     
     func stopTracking(_ voyage: Voyage) {
         voyage.isTracking = false
-        locationManager.stopBackgroundTracking()
+        locationManager?.stopBackgroundTracking()
         save()
     }
 } 

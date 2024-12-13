@@ -5,13 +5,16 @@ import UIKit
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
+    private let voyageStore: VoyageStore
     @Published var currentLocation: Coordinates?
     @Published var lastKnownLocation: Coordinates?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isTrackingActive: Bool = false
     @Published var currentSpeed: Double = 0.0 // in Knoten
+    @Published var trackedLocations: [CLLocation] = []
     
-    override init() {
+    init(voyageStore: VoyageStore) {
+        self.voyageStore = voyageStore
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
@@ -63,6 +66,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func startBackgroundTracking(interval: Int = 0) {
         print("🚀 Starting background tracking with interval: \(interval) seconds")
         isTrackingActive = true
+        trackedLocations.removeAll()
         
         // Überprüfe zuerst die Berechtigung
         switch authorizationStatus {
@@ -112,6 +116,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func stopBackgroundTracking() {
         print("🛑 Stopping background tracking")
         isTrackingActive = false
+        trackedLocations.removeAll()
         
         // Stoppe Updates
         manager.stopUpdatingLocation()
@@ -155,6 +160,44 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             print("   Lon: \(location.coordinate.longitude)")
             print("   Accuracy: \(location.horizontalAccuracy)m")
             print("   Speed: \(location.speed)m/s")
+            
+            // Debug logging
+            print("📍 Location Update:")
+            print("   Accuracy: \(location.horizontalAccuracy)m")
+            print("   Speed: \(location.speed * 1.94384) kts")
+            print("   Timestamp: \(location.timestamp)")
+            print("   Age: \(abs(location.timestamp.timeIntervalSinceNow))s")
+            
+            // Verwerfe alte Locations
+            if abs(location.timestamp.timeIntervalSinceNow) > 10 {
+                print("⚠️ Skipping old location data")
+                return
+            }
+            
+            // Verwerfe ungenaue Locations
+            if location.horizontalAccuracy > 100 {
+                print("⚠️ Skipping inaccurate location (accuracy: \(location.horizontalAccuracy)m)")
+                return
+            }
+            
+            // Wenn die Location valid ist, speichern wir sie in der Voyage
+            if location.horizontalAccuracy <= 100 && 
+               abs(location.timestamp.timeIntervalSinceNow) <= 10 {
+                trackedLocations.append(location)
+                
+                // Speichere den Punkt auf dem Main Thread
+                Task { @MainActor in
+                    if let activeVoyage = voyageStore.activeVoyage {
+                        let trackedLocation = Voyage.TrackedLocation(
+                            latitude: location.coordinate.latitude,
+                            longitude: location.coordinate.longitude,
+                            timestamp: location.timestamp
+                        )
+                        activeVoyage.trackedLocations.append(trackedLocation)
+                        voyageStore.save()
+                    }
+                }
+            }
             
             // Benachrichtige andere Komponenten über das Update
             NotificationCenter.default.post(

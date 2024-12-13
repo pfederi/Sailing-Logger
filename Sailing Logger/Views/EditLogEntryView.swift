@@ -8,6 +8,7 @@ struct EditLogEntryView: View {
     let entry: LogEntry
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var tileManager: OpenSeaMapTileManager
+    @ObservedObject var voyageStore: VoyageStore
     
     @State private var timestamp: Date
     @State private var coordinates: Coordinates
@@ -77,11 +78,12 @@ struct EditLogEntryView: View {
         return formatter
     }()
     
-    init(logStore: LogStore, entry: LogEntry, locationManager: LocationManager, tileManager: OpenSeaMapTileManager) {
+    init(logStore: LogStore, entry: LogEntry, locationManager: LocationManager, tileManager: OpenSeaMapTileManager, voyageStore: VoyageStore) {
         self.logStore = logStore
         self.entry = entry
         self.locationManager = locationManager
         self.tileManager = tileManager
+        self.voyageStore = voyageStore
         
         _timestamp = State(initialValue: entry.timestamp)
         _coordinates = State(initialValue: entry.coordinates)
@@ -873,6 +875,7 @@ struct EditLogEntryView: View {
             MapView(
                 locationManager: locationManager,
                 tileManager: tileManager,
+                voyageStore: voyageStore,
                 coordinates: coordinates,
                 logEntries: logStore.entries
             )

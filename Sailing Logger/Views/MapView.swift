@@ -9,6 +9,7 @@ class PositionAnnotation: MKPointAnnotation {
 struct MapView: UIViewRepresentable {
     let locationManager: LocationManager
     let tileManager: OpenSeaMapTileManager
+    let voyageStore: VoyageStore
     var coordinates: Coordinates
     var logEntries: [LogEntry]
     @State private var isOnline: Bool = false
@@ -178,6 +179,42 @@ struct MapView: UIViewRepresentable {
             mapView.setRegion(region, animated: true)
         }
         
+        // Update tracked route
+        mapView.removeOverlays(mapView.overlays.filter { $0 is MKPolyline })
+        
+        // Sammle alle Koordinaten
+        var allCoordinates: [CLLocationCoordinate2D] = []
+        
+        // 1. LogEntries
+        let sortedEntries = logEntries.sorted { $0.timestamp < $1.timestamp }
+        allCoordinates.append(contentsOf: sortedEntries.map { entry in
+            CLLocationCoordinate2D(
+                latitude: entry.coordinates.latitude,
+                longitude: entry.coordinates.longitude
+            )
+        })
+        
+        if let voyage = voyageStore.activeVoyage {
+            // 2. Gespeicherte Tracking-Punkte
+            allCoordinates.append(contentsOf: voyage.trackedLocations.map { $0.coordinate })
+            
+            // 3. Aktuelle Tracking-Punkte (wenn aktiv)
+            if voyage.isTracking {
+                allCoordinates.append(contentsOf: locationManager.trackedLocations.map { $0.coordinate })
+            }
+        }
+        
+        if allCoordinates.count > 1 {
+            let polyline = MKPolyline(coordinates: allCoordinates, count: allCoordinates.count)
+            mapView.addOverlay(polyline)
+            
+            let activeVoyage = voyageStore.activeVoyage
+            print("🗺 Drawing route with \(allCoordinates.count) points")
+            print("   - \(sortedEntries.count) from log entries")
+            print("   - \(activeVoyage?.trackedLocations.count ?? 0) from saved tracking")
+            print("   - \(locationManager.trackedLocations.count) from current tracking")
+        }
+        
         // Aktualisiere auch die Orcas
         mapView.annotations.forEach { annotation in
             if annotation is OrcaAnnotation {
@@ -225,6 +262,16 @@ struct MapView: UIViewRepresentable {
                 
                 return renderer
             }
+            
+            // Füge den Polyline-Renderer für die Tracking-Route hinzu
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
+                renderer.strokeColor = .systemBlue
+                renderer.lineWidth = 3
+                renderer.alpha = 0.8
+                return renderer
+            }
+            
             return MKOverlayRenderer(overlay: overlay)
         }
         

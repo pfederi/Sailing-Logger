@@ -433,14 +433,3 @@ struct AddCrewSheet: View {
         }
     }
 }
-
-#Preview {
-    let locationManager = LocationManager()
-    let voyageStore = VoyageStore(locationManager: locationManager)
-    let logStore = LogStore(voyageStore: voyageStore)
-    NewVoyageView(
-        voyageStore: voyageStore,
-        logStore: logStore,
-        locationManager: locationManager
-    )
-} 

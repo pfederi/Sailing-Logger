@@ -10,10 +10,15 @@ class LandscapeHostingController<Content: View>: UIHostingController<Content> {
 struct DailyLogViewContainer: UIViewControllerRepresentable {
     let entries: [LogEntry]
     let date: String
+    let voyageStore: VoyageStore
     
     func makeUIViewController(context: Context) -> UIViewController {
         return LandscapeHostingController(
-            rootView: DailyLogView(entries: entries, date: date)
+            rootView: DailyLogView(
+                entries: entries,
+                date: date,
+                voyageStore: voyageStore
+            )
         )
     }
     
@@ -26,11 +31,19 @@ struct DailyLogView: View {
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
     @State private var isGeneratingScreenshot = false
-    @StateObject private var locationManager = LocationManager()
+    @StateObject private var locationManager: LocationManager
     @StateObject private var tileManager = OpenSeaMapTileManager()
     @State private var shareItems: [Any] = []
     @State private var selectedEntryId: UUID?
     @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var voyageStore: VoyageStore
+    
+    init(entries: [LogEntry], date: String, voyageStore: VoyageStore) {
+        self.entries = entries
+        self.date = date
+        _locationManager = StateObject(wrappedValue: LocationManager(voyageStore: voyageStore))
+        _voyageStore = ObservedObject(wrappedValue: voyageStore)
+    }
     
     private var routeCoordinates: [Coordinates] {
         return entries.map { $0.coordinates }

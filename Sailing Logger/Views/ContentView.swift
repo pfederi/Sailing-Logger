@@ -5,6 +5,8 @@ import CoreLocation
 private struct VoyageHeaderContent: View {
     let voyage: Voyage
     @ObservedObject var logStore: LogStore
+    @ObservedObject var locationManager: LocationManager
+    @ObservedObject var voyageStore: VoyageStore
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -41,11 +43,13 @@ private struct VoyageHeaderContent: View {
 }
 
 struct ContentView: View {
-    private static func createDependencies() -> (LocationManager, VoyageStore, LogStore) {
-        let locationManager = LocationManager()
-        let voyageStore = VoyageStore(locationManager: locationManager)
+    private static func createDependencies() -> (LocationManager, VoyageStore, LogStore, ThemeManager) {
+        let themeManager = ThemeManager()
+        let voyageStore = VoyageStore()
+        let locationManager = LocationManager(voyageStore: voyageStore)
+        voyageStore.setLocationManager(locationManager)
         let logStore = LogStore(voyageStore: voyageStore)
-        return (locationManager, voyageStore, logStore)
+        return (locationManager, voyageStore, logStore, themeManager)
     }
     
     private static let dependencies = createDependencies()
@@ -68,6 +72,7 @@ struct ContentView: View {
         _locationManager = StateObject(wrappedValue: Self.dependencies.0)
         _voyageStore = StateObject(wrappedValue: Self.dependencies.1)
         _logStore = StateObject(wrappedValue: Self.dependencies.2)
+        _themeManager = StateObject(wrappedValue: Self.dependencies.3)
     }
     
     private var shouldShowNewVoyage: Bool {
@@ -104,7 +109,12 @@ struct ContentView: View {
                         tileManager: tileManager,
                         logStore: logStore
                     )) {
-                        VoyageHeaderContent(voyage: activeVoyage, logStore: logStore)
+                        VoyageHeaderContent(
+                            voyage: activeVoyage,
+                            logStore: logStore,
+                            locationManager: locationManager,
+                            voyageStore: voyageStore
+                        )
                     }
                     
                     // Tracking Status Bar - nur anzeigen wenn Auto-Tracking aktiviert ist
@@ -271,17 +281,21 @@ struct ContentView: View {
                     logStore: logStore,
                     locationManager: locationManager,
                     tileManager: tileManager,
-                    themeManager: themeManager
+                    themeManager: themeManager,
+                    voyageStore: voyageStore
                 )
                 .tint(MaritimeColors.navy(for: colorScheme))
             }
         }
         .sheet(isPresented: $showingNewVoyage) {
-            NewVoyageView(
-                voyageStore: voyageStore,
-                logStore: logStore,
-                locationManager: locationManager
-            )
+            NavigationView {
+                NewVoyageView(
+                    voyageStore: voyageStore,
+                    logStore: logStore,
+                    locationManager: locationManager
+                )
+                .tint(MaritimeColors.navy(for: colorScheme))
+            }
         }
         .sheet(isPresented: $showingEditVoyage) {
             if let activeVoyage = voyageStore.activeVoyage {
